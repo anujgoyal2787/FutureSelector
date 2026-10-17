@@ -52,18 +52,25 @@ function Navbar() {
 
   return (
     <>
-      {/* High-Visibility Floating Glass Dock with Scroll & Elevation Animations */}
+      {/* Top Background Fade Mask to prevent scrolled content from bleeding into the top gap */}
+      <div 
+        className={`fixed top-0 inset-x-0 h-24 bg-gradient-to-b from-background via-background/95 to-transparent pointer-events-none z-40 transition-opacity duration-300 ${
+          scrolled ? "opacity-100" : "opacity-0"
+        }`} 
+      />
+
+      {/* High-Visibility Floating Dock with Scroll & Elevation Animations */}
       <motion.header 
         initial={{ y: -25, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed top-4 inset-x-0 mx-auto z-50 w-[95%] max-w-6xl"
+        className="fixed top-4 inset-x-0 mx-auto z-50 w-[96%] max-w-7xl"
       >
         <div 
-          className={`relative overflow-hidden bg-white/95 backdrop-blur-2xl border transition-all duration-300 rounded-full px-4 sm:px-6 flex items-center justify-between ${
+          className={`relative overflow-hidden border transition-all duration-300 rounded-full px-4 sm:px-6 flex items-center justify-between ${
             scrolled 
-              ? "py-2 shadow-[0_16px_40px_-10px_rgba(18,75,56,0.12),0_4px_12px_rgba(18,75,56,0.06)] border-brand-200/80 bg-white/98 scale-[0.99]" 
-              : "py-2.5 shadow-[0_12px_40px_-10px_rgba(28,32,29,0.08),0_2px_8px_rgba(28,32,29,0.04)] border-border"
+              ? "py-2 shadow-[0_16px_40px_-10px_rgba(18,75,56,0.16),0_4px_16px_rgba(18,75,56,0.08)] border-brand-200 bg-white scale-[0.995]" 
+              : "py-2.5 shadow-[0_12px_40px_-10px_rgba(28,32,29,0.08),0_2px_8px_rgba(28,32,29,0.04)] border-border bg-white/95 backdrop-blur-2xl"
           }`}
         >
           {/* Animation 1: Border Beam / Glow Tracer */}
