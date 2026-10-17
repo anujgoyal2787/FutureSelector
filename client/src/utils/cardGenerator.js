@@ -25,13 +25,14 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
  * @returns {string} PNG Data URL (1024 x 1440)
  */
 export function generateCardFront(user) {
-  if (typeof document === 'undefined') return '/card-front.png';
+  const fallback = (import.meta.env.BASE_URL || '/') + 'card-front.png';
+  if (typeof document === 'undefined') return fallback;
 
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 1440;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return '/card-front.png';
+  if (!ctx) return fallback;
 
   const isVerified = !!user;
 
@@ -334,13 +335,14 @@ export function generateCardFront(user) {
  * @returns {string} PNG Data URL (1024 x 1440)
  */
 export function generateCardBack(user) {
-  if (typeof document === 'undefined') return '/card-back.png';
+  const fallback = (import.meta.env.BASE_URL || '/') + 'card-back.png';
+  if (typeof document === 'undefined') return fallback;
 
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 1440;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return '/card-back.png';
+  if (!ctx) return fallback;
 
   const isVerified = !!user;
 

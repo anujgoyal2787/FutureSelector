@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Lock, Sparkles, CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import logoImg from "../assets/logo.png";
 
 function Login() {
   const { user, login } = useAuth();
@@ -67,7 +68,7 @@ function Login() {
         <div className="md:col-span-5 bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 p-8 text-white flex flex-col justify-between">
           <div>
             <Link to="/" className="inline-block bg-white/95 px-3 py-1.5 rounded-2xl shadow-sm mb-6 hover:bg-white transition-colors">
-              <img src="/logo.png" alt="FutureSelector" className="h-7 w-auto object-contain" />
+              <img src={logoImg} alt="FutureSelector" className="h-7 w-auto object-contain" />
             </Link>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30 text-xs font-semibold mb-6">
               <Sparkles className="w-3.5 h-3.5 text-brand-400" />

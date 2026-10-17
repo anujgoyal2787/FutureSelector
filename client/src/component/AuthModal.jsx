@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Lock, CheckCircle2, Sparkles, ArrowRight } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import logoImg from "../assets/logo.png";
 
 export default function AuthModal({ onLoginSuccess }) {
   const { authModal, closeAuthModal, login } = useAuth();
@@ -62,7 +63,7 @@ export default function AuthModal({ onLoginSuccess }) {
         <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 text-white p-6 relative">
           <div className="flex items-center justify-between mb-3">
             <div className="bg-white/95 px-2.5 py-1 rounded-xl shadow-xs">
-              <img src="/logo.png" alt="FutureSelector" className="h-6 w-auto object-contain" />
+              <img src={logoImg} alt="FutureSelector" className="h-6 w-auto object-contain" />
             </div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30 text-[11px] font-semibold">
               <Lock className="w-3 h-3 text-brand-400" />

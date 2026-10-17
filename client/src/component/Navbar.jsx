@@ -8,11 +8,13 @@ import {
 import { useAuth } from "../context/AuthContext";
 import StarBorder from "./reactbits/StarBorder";
 import BorderBeam from "./reactbits/BorderBeam";
+import logoImg from "../assets/logo.png";
 
 function Navbar() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [hoveredPath, setHoveredPath] = useState(null);
   const [scrolled, setScrolled] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const location = useLocation();
   const { user, logout, openAuthModal } = useAuth();
 
@@ -89,11 +91,23 @@ function Navbar() {
               transition={{ type: "spring", stiffness: 450, damping: 16 }}
               className="flex items-center"
             >
-              <img
-                src="/logo.png"
-                alt="FutureSelector"
-                className="h-[34px] sm:h-[38px] w-auto max-w-[190px] sm:max-w-[230px] object-contain drop-shadow-xs"
-              />
+              {!logoError ? (
+                <img
+                  src={logoImg}
+                  alt="FutureSelector"
+                  onError={() => setLogoError(true)}
+                  className="h-[34px] sm:h-[38px] w-auto max-w-[190px] sm:max-w-[230px] object-contain drop-shadow-xs"
+                />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-500 flex items-center justify-center text-white font-black text-xs shadow-sm">
+                    FS
+                  </div>
+                  <span className="font-black text-base sm:text-lg text-slate-900 tracking-tight">
+                    Future<span className="text-brand-600">Selector</span>
+                  </span>
+                </div>
+              )}
             </motion.div>
           </Link>
 
@@ -282,7 +296,13 @@ function Navbar() {
               {/* Header */}
               <div className="flex justify-between items-center border-b border-border pb-4">
                 <Link to="/" onClick={() => setMobileMenu(false)} className="flex items-center">
-                  <img src="/logo.png" alt="FutureSelector" className="h-7 w-auto object-contain" />
+                  {!logoError ? (
+                    <img src={logoImg} alt="FutureSelector" className="h-7 w-auto object-contain" onError={() => setLogoError(true)} />
+                  ) : (
+                    <span className="font-black text-base text-slate-900 tracking-tight">
+                      Future<span className="text-brand-600">Selector</span>
+                    </span>
+                  )}
                 </Link>
                 <button 
                   onClick={() => setMobileMenu(false)} 

@@ -20,6 +20,7 @@ import CountUp from "../component/reactbits/CountUp";
 import StarBorder from "../component/reactbits/StarBorder";
 import SplitAndMarqueeTestimonials from "../component/SplitAndMarqueeTestimonials";
 import HeroIITBackground from "../component/HeroIITBackground";
+import logoImg from "../assets/logo.png";
 
 const dummyInstitutes = institutesData;
 
@@ -452,7 +453,7 @@ function Home() {
               <Lanyard 
                 frontImage={cardFrontImage} 
                 backImage={cardBackImage} 
-                strapImage="/band.png"
+                strapImage={import.meta.env.BASE_URL + "band.png"}
                 imageFit="cover"
                 cardColor="#ffffff"
                 orientation="portrait"
@@ -1271,7 +1272,7 @@ function Home() {
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="inline-block mb-4">
-              <img src="/logo.png" alt="FutureSelector" className="h-10 w-auto object-contain" />
+              <img src={logoImg} alt="FutureSelector" className="h-10 w-auto object-contain" />
             </Link>
             <p className="text-sm text-textMuted">Making educational choices transparent, data-driven, and perfectly suited for every student.</p>
           </div>
