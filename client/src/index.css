@@ -139,5 +139,43 @@
   scrollbar-width: none;
 }
 
+/* ============================================================ */
+/* ULTRA LIGHTWEIGHT PRINT STYLES (PREVENTS PRINT DIALOG FREEZE) */
+/* ============================================================ */
+@media print {
+  /* Hide non-printable navigation, animations, filters and buttons */
+  nav,
+  header,
+  footer,
+  button,
+  .no-print,
+  .blur-3xl,
+  .border-beam-container,
+  canvas {
+    display: none !important;
+  }
 
+  body, html {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
 
+  /* Kill all GPU filters and animations that crash Chrome print spooler */
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    filter: none !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+}

@@ -6,13 +6,14 @@ import {
   Star, MapPin, Users, IndianRupee, ChevronRight, Plus, X,
   Sparkles, Share2, Printer, Trophy, Check, Copy, 
   Award, Zap, BookOpen, Building2, GraduationCap,
-  Percent, TrendingUp, HelpCircle
+  Percent, TrendingUp, HelpCircle, FileDown, Loader2
 } from "lucide-react";
 import { institutesData } from "../data/institutes";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "../component/AuthModal";
 import SeatLockModal from "../component/SeatLockModal";
 import BorderBeam from "../component/reactbits/BorderBeam";
+import { generateComparisonPDF } from "../utils/pdfGenerator";
 
 // Preset legendary rivalry comparisons
 const PRESETS = [
@@ -67,6 +68,8 @@ export default function Compare() {
   const [seatLockTarget, setSeatLockTarget] = useState(null);
   const [highlightDifferences, setHighlightDifferences] = useState(true);
   const [copiedShare, setCopiedShare] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfSuccess, setPdfSuccess] = useState(false);
 
   // Parse IDs from URL query e.g. ?ids=1,2
   const initialIds = useMemo(() => {
@@ -198,7 +201,20 @@ export default function Compare() {
   };
 
   const handlePrint = () => {
-    window.print();
+    setIsGeneratingPdf(true);
+    setTimeout(() => {
+      try {
+        generateComparisonPDF(selectedInstitutes);
+        setPdfSuccess(true);
+        setTimeout(() => setPdfSuccess(false), 3000);
+      } catch (err) {
+        console.error("Instant PDF generation failed:", err);
+        // Fallback to window.print if needed
+        window.print();
+      } finally {
+        setIsGeneratingPdf(false);
+      }
+    }, 100);
   };
 
   return (
@@ -251,11 +267,26 @@ export default function Compare() {
 
               <button
                 onClick={handlePrint}
-                className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border-2 border-slate-300 text-xs font-bold hidden sm:flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
-                title="Print comparison table"
+                disabled={isGeneratingPdf}
+                className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black flex items-center gap-2 shadow-sm cursor-pointer active:scale-95 transition-all disabled:opacity-75"
+                title="Download verified PDF report immediately"
               >
-                <Printer className="w-4 h-4 text-slate-600" />
-                <span>Print</span>
+                {isGeneratingPdf ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
+                    <span>Generating PDF...</span>
+                  </>
+                ) : pdfSuccess ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span className="text-emerald-300">PDF Downloaded!</span>
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="w-4 h-4 text-amber-300" />
+                    <span>Download PDF</span>
+                  </>
+                )}
               </button>
 
               {selectedIds.length < 3 && (
