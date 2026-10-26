@@ -185,12 +185,11 @@ export default function Counselling() {
       }
 
       const options = {
-        key: orderRes.keyId,
+        key: orderRes.keyId || "rzp_test_TrRRT8J3Vu7Lun",
         amount: orderRes.amount || 1100,
         currency: orderRes.currency || "INR",
         name: "FutureSelector",
         description: "₹11 Commitment Token Fee • 1-on-1 Academic Advisory",
-        order_id: orderRes.orderId,
         prefill: {
           name: formData.name,
           contact: formData.phone
@@ -202,7 +201,7 @@ export default function Counselling() {
           try {
             const verifyRes = await counsellingAPI.verifyPayment({
               bookingId: orderRes.bookingId,
-              razorpay_order_id: response.razorpay_order_id,
+              razorpay_order_id: response.razorpay_order_id || orderRes.orderId,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature
             });
@@ -221,6 +220,11 @@ export default function Counselling() {
           }
         }
       };
+
+      // Only attach order_id if it's a genuine live Razorpay order ID
+      if (orderRes.orderId && orderRes.orderId.startsWith("order_") && !orderRes.orderId.startsWith("order_cns_") && !orderRes.orderId.startsWith("order_pending_")) {
+        options.order_id = orderRes.orderId;
+      }
 
       const rzp = new window.Razorpay(options);
       rzp.on("payment.failed", function (resp) {
