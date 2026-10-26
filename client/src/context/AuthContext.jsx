@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }) => {
       escrowDays: "15-Day Escrow Protected",
       code: seatData.code || `FS-${(seatData.instituteName || seatData.name || "COACHING").split(" ")[0].toUpperCase()}-15K`,
       lockedAt: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
-      studentName: user?.name || seatData.studentName || "Aryan Sharma"
+      studentName: user?.name || seatData.studentName || "Student Aspirant"
     };
 
     setLockedSeats((prev) => {
@@ -157,19 +157,32 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("fs_locked_seats");
   };
 
-  const toggleShortlist = (instituteId) => {
+  const toggleShortlist = async (instituteId) => {
     if (!user) {
       openAuthModal(null, "Log in to save this coaching to your shortlist.");
       return false;
     }
-    const isCurrentlySaved = user.shortlisted?.includes(instituteId);
+    const currentList = user.shortlisted || user.shortlistedInstitutes || [];
+    const isCurrentlySaved = currentList.includes(instituteId);
     const updatedList = isCurrentlySaved
-      ? user.shortlisted.filter((id) => id !== instituteId)
-      : [...(user.shortlisted || []), instituteId];
+      ? currentList.filter((id) => id !== instituteId)
+      : [...currentList, instituteId];
 
-    const updatedUser = { ...user, shortlisted: updatedList };
+    const updatedUser = { 
+      ...user, 
+      shortlisted: updatedList, 
+      shortlistedInstitutes: updatedList 
+    };
     setUser(updatedUser);
     localStorage.setItem("fs_student", JSON.stringify(updatedUser));
+
+    // Save to MongoDB Atlas user document
+    try {
+      await authAPI.updateProfile({ shortlistedInstitutes: updatedList });
+    } catch (err) {
+      console.warn("[SHORTLIST SYNC WARN]:", err.message);
+    }
+
     return !isCurrentlySaved;
   };
 

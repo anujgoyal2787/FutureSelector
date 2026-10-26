@@ -65,9 +65,13 @@ export default function Dashboard() {
   const [apiPasses, setApiPasses] = useState([]);
 
   const fetchStudentPasses = async () => {
-    const phoneToQuery = user?.phone || "9876543210";
+    if (!user) return;
+    const phone = user.phone ? user.phone.replace("+91 ", "").trim() : "";
+    const email = user.email || "";
+    if (!phone && !email) return;
+
     try {
-      const passes = await voucherAPI.getMyPasses(phoneToQuery);
+      const passes = await voucherAPI.getMyPasses({ phone, email });
       if (passes && passes.length > 0) {
         setApiPasses(passes);
       }
@@ -77,10 +81,17 @@ export default function Dashboard() {
   };
 
   const fetchStudentTickets = async () => {
-    const phoneToQuery = user?.phone || "9876543210";
+    if (!user) return;
+    const phone = user.phone ? user.phone.replace("+91 ", "").trim() : "";
+    const email = user.email || "";
+    if (!phone && !email) {
+      setStudentTickets([]);
+      return;
+    }
+
     setIsLoadingTickets(true);
     try {
-      const res = await rmsAPI.getMyTickets(phoneToQuery);
+      const res = await rmsAPI.getMyTickets({ phone, email });
       if (res && res.tickets) {
         setStudentTickets(res.tickets);
       }
@@ -94,7 +105,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetchStudentTickets();
     fetchStudentPasses();
-  }, [user?.phone]);
+  }, [user?.phone, user?.email]);
 
   const handleConfirmResolution = async (ticketId) => {
     const feedback = prompt("Optional: Confirmation remarks before closing dispute:", "Satisfied with resolution");
@@ -236,6 +247,142 @@ export default function Dashboard() {
     return institutesData.filter(inst => list.includes(inst.id));
   }, [user]);
 
+  // Dynamic personalized recommended institutes for the logged-in student
+  const personalizedRecommendations = useMemo(() => {
+    let pool = [...institutesData];
+    if (!pool.length) return [];
+
+    if (user?.exam) {
+      const isNeet = user.exam.toLowerCase().includes("neet");
+      const isJee = user.exam.toLowerCase().includes("jee");
+      if (isNeet) {
+        pool = pool.filter(i => (i.type || "").toLowerCase().includes("neet") || (i.name || "").toLowerCase().includes("aakash") || (i.name || "").toLowerCase().includes("allen"));
+      } else if (isJee) {
+        pool = pool.filter(i => (i.type || "").toLowerCase().includes("jee") || (i.type || "").toLowerCase().includes("advanced"));
+      }
+    }
+
+    if (user?.city) {
+      const cityKey = user.city.toLowerCase().split(",")[0].trim();
+      pool.sort((a, b) => {
+        const aMatches = (a.location || "").toLowerCase().includes(cityKey) || (a.cityKey || "").toLowerCase().includes(cityKey);
+        const bMatches = (b.location || "").toLowerCase().includes(cityKey) || (b.cityKey || "").toLowerCase().includes(cityKey);
+        if (aMatches && !bMatches) return -1;
+        if (!aMatches && bMatches) return 1;
+        return (b.rating || 0) - (a.rating || 0);
+      });
+    }
+
+    return pool.slice(0, 4);
+  }, [user?.exam, user?.city]);
+
+  // Render Personalized Recommendations Block
+  const renderPersonalizedRecommendations = () => {
+    if (!personalizedRecommendations.length) return null;
+
+    return (
+      <div className="pt-6 space-y-3.5 border-t border-border/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-gold-500/20 text-gold-900 border border-gold-400/40 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-gold-600" />
+                Tailored for {user?.name || "You"}
+              </span>
+            </div>
+            <h3 className="text-base sm:text-lg font-black text-slate-900 mt-1">
+              Top Coaching Centers for {user?.exam || "Competitive Exams"} {user?.city ? `• ${user.city}` : ""}
+            </h3>
+            <p className="text-xs text-textMuted font-medium">
+              Claim an official ₹15,000 admission fee grant or save centers to your shortlist for side-by-side comparison.
+            </p>
+          </div>
+          <Link
+            to="/find-coaching"
+            className="btn-secondary text-xs py-2 px-3.5 font-bold shrink-0 self-start sm:self-auto flex items-center gap-1.5"
+          >
+            <span>Explore All Centers</span>
+            <ArrowRight className="w-3.5 h-3.5 text-brand-700" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {personalizedRecommendations.map((inst) => {
+            const isSaved = (user?.shortlisted || user?.shortlistedInstitutes || []).includes(inst.id);
+            return (
+              <div
+                key={inst.id}
+                className="bg-surface rounded-2xl border border-border hover:border-brand-300 p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-3 relative group"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-border">
+                    <img
+                      src={inst.image}
+                      alt={inst.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider bg-brand-50 text-brand-800 border border-brand-200 px-2 py-0.5 rounded-md truncate">
+                        {inst.type}
+                      </span>
+                      <button
+                        onClick={() => toggleShortlist(inst.id)}
+                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          isSaved
+                            ? "bg-rose-50 border-rose-300 text-rose-600"
+                            : "bg-surfaceWarm border-border text-slate-400 hover:text-rose-500 hover:bg-rose-50"
+                        }`}
+                        title={isSaved ? "Saved in Shortlist" : "Save to Shortlist"}
+                      >
+                        <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-rose-500" : ""}`} />
+                      </button>
+                    </div>
+                    <h4 className="text-sm font-black text-slate-900 mt-1 truncate">
+                      {inst.name}
+                    </h4>
+                    <p className="text-[11px] text-textMuted flex items-center gap-1 mt-0.5 truncate">
+                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span>{inst.location} ({inst.locality || "Main Campus"})</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/70 text-xs">
+                  <div className="p-2 bg-surfaceWarm rounded-xl border border-border">
+                    <span className="text-[9px] text-textMuted uppercase font-bold block">Annual Tuition:</span>
+                    <span className="font-black text-slate-900 text-xs">{inst.fees}</span>
+                  </div>
+                  <div className="p-2 bg-emerald-50 rounded-xl border border-emerald-200 text-right">
+                    <span className="text-[9px] text-emerald-700 font-extrabold uppercase block">FS Waiver Pass:</span>
+                    <span className="font-black text-emerald-800 text-xs font-mono">Flat ₹15,000 Off</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    onClick={() => setSeatLockTarget(inst)}
+                    className="flex-1 btn-primary text-xs py-2 px-3 font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-gold-300" />
+                    <span>Lock ₹15K Pass</span>
+                  </button>
+                  <Link
+                    to={`/institute/${inst.slug || inst.id}`}
+                    className="btn-secondary text-xs py-2 px-3 font-bold text-slate-700 hover:text-slate-900"
+                  >
+                    Audited Profile
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   // Copy Voucher ID
   const handleCopyVoucher = () => {
     if (!currentPass) return;
@@ -262,10 +409,10 @@ export default function Dashboard() {
   const handleDownloadPDF = (pass = currentPass) => {
     if (!pass) return;
     generateAdmissionPassPDF(pass, user || {
-      name: "Aryan Sharma",
-      phone: "+91 98765 43210",
-      exam: "JEE Advanced 2026",
-      city: "Kota, Rajasthan"
+      name: "Student Aspirant",
+      phone: "Verified Student",
+      exam: "Competitive Exam",
+      city: "Coaching Hub"
     });
   };
 
@@ -273,7 +420,7 @@ export default function Dashboard() {
   const handleDemoLogin = async () => {
     try {
       const res = await authAPI.verifyOtp({
-        name: "Aryan Sharma",
+        name: "Demo Aspirant",
         phone: "9876543210",
         otp: "2026",
         exam: "JEE Advanced 2026",
@@ -284,13 +431,13 @@ export default function Dashboard() {
       }
     } catch {
       login({
-        name: "Aryan Sharma",
+        name: "Demo Aspirant",
         phone: "+91 98765 43210",
-        email: "aryan.jee2026@gmail.com",
+        email: "demo@futureselector.in",
         exam: "JEE Advanced 2026",
         city: "Kota, Rajasthan",
         standard: "12th Science / Dropper",
-        dreamCollege: "IIT Bombay (Computer Science)",
+        dreamCollege: "IIT Bombay",
         shortlisted: [1, 2]
       });
     }
@@ -301,7 +448,10 @@ export default function Dashboard() {
     e.preventDefault();
     setAdvisoryBooked(true);
     setTimeout(() => {
-      const text = `Hello FutureSelector Senior Counselor! I am ${user?.name || "Aryan Sharma"} (${user?.exam || "JEE 2026"}). I need advice on: ${advisoryTopic}. My voucher ID is ${currentPass?.voucherId}.`;
+      const name = user?.name || "Student Aspirant";
+      const exam = user?.exam || "Competitive Exam";
+      const phone = advisoryPhone || user?.phone || "";
+      const text = `Hello FutureSelector Senior Counselor! I am ${name} (${exam}, Mobile: ${phone}). I need guidance on: ${advisoryTopic}.`;
       window.open(`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(text)}`, "_blank");
     }, 600);
   };
@@ -531,7 +681,9 @@ export default function Dashboard() {
               <span className="text-sm font-black text-slate-900 font-mono mt-0.5 block">
                 Free Guidance
               </span>
-              <span className="text-[10px] text-emerald-700 font-bold block">Kota Mentor Desk</span>
+              <span className="text-[10px] text-emerald-700 font-bold block">
+                {user?.city ? `${user.city.split(',')[0]} Desk` : "Mentor Desk"}
+              </span>
             </button>
 
             <button
@@ -749,6 +901,8 @@ export default function Dashboard() {
             </motion.div>
           </>
         )}
+
+        {renderPersonalizedRecommendations()}
       </div>
     )}
 
@@ -871,6 +1025,8 @@ export default function Dashboard() {
             </div>
           </>
         )}
+
+        {renderPersonalizedRecommendations()}
       </div>
     )}
 

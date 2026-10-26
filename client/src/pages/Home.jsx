@@ -170,14 +170,34 @@ const faqs = [
 
 function Home() {
   const { user, openAuthModal, toggleShortlist } = useAuth();
+  const userDefaultExam = user?.exam?.toLowerCase().includes("neet") ? "neet" : user?.exam?.toLowerCase().includes("jee") ? "jee" : "";
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
-  const [selectedExam, setSelectedExam] = useState(""); // "" | "jee" | "neet"
+  const [selectedExam, setSelectedExam] = useState(userDefaultExam); // "" | "jee" | "neet"
   const [selectedBudget, setSelectedBudget] = useState(""); // "" | "under100k" | "100k-150k" | "above150k"
   const [openFaq, setOpenFaq] = useState(0);
   const [selectedInstitute, setSelectedInstitute] = useState(null);
-  const [activeCompareTab, setActiveCompareTab] = useState("jee");
+  const [activeCompareTab, setActiveCompareTab] = useState(userDefaultExam === "neet" ? "neet" : "jee");
   const [comparedIds, setComparedIds] = useState([]);
+
+  useEffect(() => {
+    if (user?.exam) {
+      if (user.exam.toLowerCase().includes("neet")) {
+        setSelectedExam("neet");
+        setActiveCompareTab("neet");
+      } else if (user.exam.toLowerCase().includes("jee")) {
+        setSelectedExam("jee");
+        setActiveCompareTab("jee");
+      }
+    }
+    if (user?.city) {
+      const cityLower = user.city.toLowerCase();
+      if (cityLower.includes("delhi")) setSelectedLocation("delhi");
+      else if (cityLower.includes("kota")) setSelectedLocation("kota");
+      else if (cityLower.includes("hyderabad")) setSelectedLocation("hyderabad");
+      else if (cityLower.includes("jaipur")) setSelectedLocation("jaipur");
+    }
+  }, [user]);
 
   const toggleCompare = (id, e) => {
     if (e) e.stopPropagation();
@@ -268,7 +288,11 @@ function Home() {
             >
               <span className="w-2 h-2 rounded-full bg-brand-600 animate-pulse shrink-0"></span>
               <ShieldCheck className="w-3.5 h-3.5 text-brand-600 shrink-0" />
-              <span className="truncate">Verified Coaching Discovery Platform • JEE & NEET Aspirants</span>
+              <span className="truncate">
+                {user 
+                  ? `👋 Welcome, ${user.name} • ${user.exam || "Student"} Pass Ready`
+                  : "Verified Coaching Discovery Platform • JEE & NEET Aspirants"}
+              </span>
             </motion.div>
 
             {/* Main Headline - Razor-Sharp, High-Contrast Typography */}

@@ -97,8 +97,18 @@ export const voucherAPI = {
       body: JSON.stringify(voucherData)
     }),
 
-  getMyPasses: (phone) =>
-    request(`/vouchers/my-passes${phone ? `?phone=${encodeURIComponent(phone)}` : ""}`),
+  getMyPasses: (params) => {
+    let query = "";
+    if (typeof params === "string") {
+      query = `phone=${encodeURIComponent(params)}`;
+    } else if (params && typeof params === "object") {
+      const q = new URLSearchParams();
+      if (params.phone) q.append("phone", params.phone);
+      if (params.email) q.append("email", params.email);
+      query = q.toString();
+    }
+    return request(`/vouchers/my-passes${query ? `?${query}` : ""}`);
+  },
 
   verifyCode: (code) =>
     request(`/vouchers/verify/${encodeURIComponent(code)}`)
@@ -229,8 +239,18 @@ export const rmsAPI = {
       body: JSON.stringify(payload)
     }),
 
-  getMyTickets: (phone) =>
-    request(`/rms/my-tickets?phone=${encodeURIComponent(phone)}`),
+  getMyTickets: (params) => {
+    let query = "";
+    if (typeof params === "string") {
+      query = `phone=${encodeURIComponent(params)}`;
+    } else if (params && typeof params === "object") {
+      const q = new URLSearchParams();
+      if (params.phone) q.append("phone", params.phone);
+      if (params.email) q.append("email", params.email);
+      query = q.toString();
+    }
+    return request(`/rms/my-tickets${query ? `?${query}` : ""}`);
+  },
 
   confirmResolution: (ticketId, studentFeedback) =>
     request(`/rms/${encodeURIComponent(ticketId)}/student-confirm`, {

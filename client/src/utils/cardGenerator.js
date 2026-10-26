@@ -143,7 +143,7 @@ export function generateCardFront(user) {
   ctx.textAlign = 'center';
   ctx.fillStyle = isVerified ? '#0D3A2C' : '#1C201D';
   ctx.font = '800 36px Inter, system-ui, sans-serif';
-  const displayName = isVerified ? (user.name || 'Aryan Sharma').toUpperCase() : 'GUEST ASPIRANT';
+  const displayName = isVerified ? (user.name || 'Student Aspirant').toUpperCase() : 'GUEST ASPIRANT';
   ctx.fillText(displayName, 512, 535);
 
   ctx.fillStyle = isVerified ? '#124B38' : '#B45309';
@@ -155,7 +155,7 @@ export function generateCardFront(user) {
 
   ctx.fillStyle = '#5F6B64';
   ctx.font = '600 16px Inter, system-ui, sans-serif';
-  const examText = isVerified ? `TARGET EXAM: ${(user.exam || 'JEE Advanced 2026').toUpperCase()}` : 'TARGET: JEE & NEET ASPIRANTS';
+  const examText = isVerified ? (user.exam ? `TARGET EXAM: ${user.exam.toUpperCase()}` : 'TARGET EXAM: COMPETITIVE STREAM') : 'TARGET: JEE & NEET ASPIRANTS';
   ctx.fillText(examText, 512, 598);
 
   // 6. Highlight Center Box

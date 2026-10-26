@@ -135,13 +135,21 @@ router.post("/claim", async (req, res) => {
 // 2. Get active admission passes for student
 router.get("/my-passes", async (req, res) => {
   try {
-    const { phone } = req.query;
-    if (!phone) {
-      return res.status(400).json({ error: "Phone number is required" });
+    const { phone, email } = req.query;
+    if (!phone && !email) {
+      return res.status(400).json({ error: "Phone number or email is required" });
     }
 
-    const cleanPhone = `+91 ${phone.replace(/\D/g, "").slice(-10)}`;
-    const passes = await Voucher.find({ studentPhone: cleanPhone }).sort({ createdAt: -1 });
+    const queryOr = [];
+    if (phone) {
+      const cleanPhone = `+91 ${phone.replace(/\D/g, "").slice(-10)}`;
+      queryOr.push({ studentPhone: cleanPhone });
+    }
+    if (email) {
+      queryOr.push({ studentEmail: email.toLowerCase().trim() });
+    }
+
+    const passes = await Voucher.find({ $or: queryOr }).sort({ createdAt: -1 });
 
     res.json(passes);
   } catch (error) {

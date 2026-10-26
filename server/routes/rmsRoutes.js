@@ -71,15 +71,23 @@ router.post("/student-ticket", async (req, res) => {
 // 2. Student Dashboard - Fetch My Raised Grievances / Tickets
 router.get("/my-tickets", async (req, res) => {
   try {
-    const { phone } = req.query;
-    if (!phone) {
-      return res.status(400).json({ error: "Phone number is required to look up student grievances" });
+    const { phone, email } = req.query;
+    if (!phone && !email) {
+      return res.status(400).json({ error: "Phone number or email is required to look up student grievances" });
     }
 
-    const cleanPhone = phone.replace(/[^0-9]/g, "").slice(-10);
-    const tickets = await RMSTicket.find({
-      studentPhone: { $regex: cleanPhone }
-    }).sort({ createdAt: -1 });
+    const queryOr = [];
+    if (phone) {
+      const cleanPhone = phone.replace(/[^0-9]/g, "").slice(-10);
+      if (cleanPhone) {
+        queryOr.push({ studentPhone: { $regex: cleanPhone } });
+      }
+    }
+    if (email) {
+      queryOr.push({ studentEmail: email.toLowerCase().trim() });
+    }
+
+    const tickets = await RMSTicket.find(queryOr.length ? { $or: queryOr } : {}).sort({ createdAt: -1 });
 
     res.json({
       success: true,

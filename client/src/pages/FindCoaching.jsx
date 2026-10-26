@@ -23,10 +23,13 @@ export default function FindCoaching() {
   const navigate = useNavigate();
   const { user, toggleShortlist, authModal, closeAuthModal, openAuthModal } = useAuth();
 
-  // URL Query Sync
+  const userExamKey = user?.exam?.toLowerCase().includes("neet") ? "neet" : user?.exam?.toLowerCase().includes("jee") ? "jee" : "all";
+  const userCityKey = user?.city?.toLowerCase().includes("delhi") ? "delhi" : user?.city?.toLowerCase().includes("kota") ? "kota" : user?.city?.toLowerCase().includes("hyderabad") ? "hyderabad" : user?.city?.toLowerCase().includes("agra") ? "agra" : "all";
+
+  // URL Query Sync with fallback to logged-in student's preferences
   const initialSearch = searchParams.get("q") || "";
-  const initialExam = searchParams.get("exam") || "all";
-  const initialCity = searchParams.get("city") || "all";
+  const initialExam = searchParams.get("exam") || (user?.exam ? userExamKey : "all");
+  const initialCity = searchParams.get("city") || (user?.city ? userCityKey : "all");
   const initialBatch = searchParams.get("batch") || "all";
 
   // Filter States

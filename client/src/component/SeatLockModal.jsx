@@ -23,7 +23,7 @@ export default function SeatLockModal({
   const [studentName, setStudentName] = useState(user?.name || "");
   const [studentPhone, setStudentPhone] = useState(user?.phone?.replace("+91 ", "") || "");
   const [parentName, setParentName] = useState("");
-  const [targetStream, setTargetStream] = useState(user?.exam || "2026 JEE Advanced");
+  const [targetStream, setTargetStream] = useState(user?.exam || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [voucherId, setVoucherId] = useState("");
@@ -44,9 +44,9 @@ export default function SeatLockModal({
     setIsSubmitting(true);
     try {
       const res = await voucherAPI.claimPass({
-        studentName: studentName || user?.name || "Aryan Sharma",
-        studentPhone: studentPhone || user?.phone || "+91 98765 43210",
-        studentEmail: user?.email || "aspirant@futureselector.com",
+        studentName: studentName || user?.name || "Student Aspirant",
+        studentPhone: studentPhone || user?.phone || "",
+        studentEmail: user?.email || "aspirant@futureselector.in",
         instituteId: institute.numericId || institute.id || 1,
         instituteName: institute.name,
         batch: selectedBatch,
@@ -64,7 +64,7 @@ export default function SeatLockModal({
           batch: selectedBatch,
           discountAmount: "₹15,000 Flat Grant",
           code: res.voucher?.code || codeToUse,
-          studentName: studentName || user?.name || "Aryan Sharma"
+          studentName: studentName || user?.name || "Student Aspirant"
         });
       }
       setIsConfirmed(true);
@@ -432,9 +432,9 @@ export default function SeatLockModal({
                         validTill: "Valid till 30 Nov 2026"
                       },
                       {
-                        name: studentName || user?.name || "Aryan Sharma",
-                        phone: `+91 ${studentPhone || "9876543210"}`,
-                        exam: targetStream || "JEE Advanced 2026",
+                        name: studentName || user?.name || "Student Aspirant",
+                        phone: studentPhone || user?.phone || "Verified Student",
+                        exam: targetStream || user?.exam || "Competitive Exam",
                         city: institute.location
                       }
                     );

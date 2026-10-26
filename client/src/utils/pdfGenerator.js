@@ -260,10 +260,10 @@ export function generateAdmissionPassPDF(voucher, user) {
   y += 4;
 
   const aspirantData = [
-    ["Candidate Name", user?.name || "Aryan Sharma", "Target Exam", user?.exam || "JEE Advanced 2026"],
-    ["Contact Phone", user?.phone || "+91 98765 43210", "Preferred Hub", user?.city || "Kota, Rajasthan"],
-    ["Allocated Institute", voucher.instituteName || "Aakash Institute", "Batch Category", voucher.batch || "Regular Classroom Batch"],
-    ["Voucher ID", voucher.voucherId || "FS-SEAT-7429", "Counter Promo Code", voucher.code || "FS-AAKASH-15K"],
+    ["Candidate Name", user?.name || "Student Aspirant", "Target Exam", user?.exam || "Competitive Exam"],
+    ["Contact Phone", user?.phone || "Verified Contact", "Preferred Hub", user?.city || "Coaching Hub"],
+    ["Allocated Institute", voucher.instituteName || "Audited Institute", "Batch Category", voucher.batch || "Regular Classroom Batch"],
+    ["Voucher ID", voucher.voucherId || "FS-SEAT-7429", "Counter Promo Code", voucher.code || "FS-PASS-15K"],
     ["Grant Value", voucher.discountAmount || "Flat ₹15,000 Off Tuition", "Validity Period", voucher.validTill || "Valid for 2026 Session"]
   ];
 
