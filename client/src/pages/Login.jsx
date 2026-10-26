@@ -19,10 +19,10 @@ function Login() {
   const [step, setStep] = useState("details");
 
   const [formData, setFormData] = useState({
-    name: "Aryan Sharma",
-    phone: "9876543210",
-    exam: "JEE Advanced 2026",
-    city: "Kota, Rajasthan"
+    name: "",
+    phone: "",
+    exam: "",
+    city: ""
   });
 
   const [errors, setErrors] = useState({
@@ -96,8 +96,8 @@ function Login() {
             picture: googleProfile.picture || "",
             googleId: googleProfile.googleId || "",
             phone: formData.phone === "9876543210" ? "" : formData.phone,
-            exam: formData.exam || "JEE Advanced 2026",
-            city: formData.city || "Kota, Rajasthan"
+            exam: formData.exam || "",
+            city: formData.city || ""
           });
           if (res && res.user) {
             login(res.user, res.token);
@@ -424,10 +424,11 @@ function Login() {
                         onChange={(e) => setFormData({ ...formData, exam: e.target.value })}
                         className="w-full px-3 py-2.5 rounded-xl border border-border text-xs text-slate-900 font-medium bg-white outline-none transition-all duration-200 hover:border-slate-300 focus:border-brand-600 focus:ring-4 focus:ring-brand-500/15 focus:shadow-[0_0_16px_rgba(27,94,72,0.1)] cursor-pointer"
                       >
+                        <option value="">Select Target Exam...</option>
                         <option value="JEE Advanced 2026">JEE Advanced 2026</option>
                         <option value="JEE Main 2026">JEE Main 2026</option>
                         <option value="NEET-UG 2026">NEET-UG 2026</option>
-                        <option value="Foundation (9th-10th)">Foundation</option>
+                        <option value="Foundation (9th-10th)">Foundation (9th-10th)</option>
                       </select>
                     </div>
                   </div>
@@ -441,10 +442,15 @@ function Login() {
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       className="w-full px-3 py-2.5 rounded-xl border border-border text-xs text-slate-900 font-medium bg-white outline-none transition-all duration-200 hover:border-slate-300 focus:border-brand-600 focus:ring-4 focus:ring-brand-500/15 focus:shadow-[0_0_16px_rgba(27,94,72,0.1)] cursor-pointer"
                     >
-                      <option value="Kota, Rajasthan">Kota, Rajasthan (All Hubs)</option>
-                      <option value="Delhi NCR (Kalu Sarai / Janakpuri)">Delhi NCR (Kalu Sarai / Janakpuri)</option>
-                      <option value="Agra (Sanjay Place / Khandari)">Agra (Sanjay Place / Khandari)</option>
-                      <option value="Hyderabad (Kukatpally / Madhapur)">Hyderabad (Kukatpally / Madhapur)</option>
+                      <option value="">Select Coaching Hub...</option>
+                      <option value="Kota, Rajasthan">Kota, Rajasthan</option>
+                      <option value="Delhi NCR">Delhi NCR</option>
+                      <option value="Hyderabad">Hyderabad</option>
+                      <option value="Bengaluru">Bengaluru</option>
+                      <option value="Jaipur">Jaipur</option>
+                      <option value="Lucknow">Lucknow</option>
+                      <option value="Patna">Patna</option>
+                      <option value="Agra">Agra</option>
                     </select>
                   </div>
 

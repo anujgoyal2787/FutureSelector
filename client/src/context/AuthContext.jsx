@@ -80,10 +80,10 @@ export const AuthProvider = ({ children }) => {
       name: userData.name || "Student Aspirant",
       email: userData.email || "",
       phone: userData.phone || "",
-      exam: userData.exam || "JEE Advanced 2026",
-      city: userData.city || "Kota, Rajasthan",
-      standard: userData.standard || "12th Science / Dropper",
-      dreamCollege: userData.dreamCollege || "IIT Bombay (Computer Science)",
+      exam: userData.exam || "",
+      city: userData.city || "",
+      standard: userData.standard || "",
+      dreamCollege: userData.dreamCollege || "",
       shortlisted: userData.shortlisted || userData.shortlistedInstitutes || [],
       verified: true
     };

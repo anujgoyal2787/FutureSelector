@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -171,20 +171,30 @@ export default function Dashboard() {
     }
   };
 
+  // Auto-prompt student to select preferences if freshly logged in and not yet configured
+  const hasAutoPromptedRef = useRef(false);
+
   // Sync profile form when opening modal
   const handleOpenEditProfile = () => {
     if (user) {
       setProfileForm({
-        name: user.name || "Aryan Sharma",
-        phone: user.phone ? user.phone.replace("+91 ", "") : "9876543210",
-        exam: user.exam || "JEE Advanced 2026",
-        city: user.city || "Kota, Rajasthan",
-        standard: user.standard || "12th Science / Dropper",
-        dreamCollege: user.dreamCollege || "IIT Bombay (Computer Science)"
+        name: user.name || "",
+        phone: user.phone ? user.phone.replace("+91 ", "") : "",
+        exam: user.exam || "",
+        city: user.city || "",
+        standard: user.standard || "",
+        dreamCollege: user.dreamCollege || ""
       });
     }
     setIsEditProfileOpen(true);
   };
+
+  useEffect(() => {
+    if (user && (!user.exam || !user.city) && !hasAutoPromptedRef.current) {
+      hasAutoPromptedRef.current = true;
+      handleOpenEditProfile();
+    }
+  }, [user]);
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
@@ -386,13 +396,49 @@ export default function Dashboard() {
                     Verified Student Pass
                   </span>
                 </div>
-                <p className="text-xs text-textMuted mt-0.5 font-medium flex flex-wrap items-center gap-x-2">
-                  <span>Target: <strong className="text-brand-900 font-bold">{user.exam || "JEE Advanced 2026"}</strong></span>
+                <div className="text-xs text-textMuted mt-0.5 font-medium flex flex-wrap items-center gap-x-2">
+                  <span>
+                    Target:{" "}
+                    {user.exam ? (
+                      <strong className="text-brand-900 font-bold">{user.exam}</strong>
+                    ) : (
+                      <button
+                        onClick={handleOpenEditProfile}
+                        className="text-brand-700 underline font-bold hover:text-brand-900 cursor-pointer"
+                      >
+                        + Set Target Exam
+                      </button>
+                    )}
+                  </span>
                   <span>•</span>
-                  <span>Hub: <strong className="text-slate-900 font-bold">{user.city || "Kota, Rajasthan"}</strong></span>
+                  <span>
+                    Hub:{" "}
+                    {user.city ? (
+                      <strong className="text-slate-900 font-bold">{user.city}</strong>
+                    ) : (
+                      <button
+                        onClick={handleOpenEditProfile}
+                        className="text-brand-700 underline font-bold hover:text-brand-900 cursor-pointer"
+                      >
+                        + Set Hub
+                      </button>
+                    )}
+                  </span>
                   <span>•</span>
-                  <span>Class: <strong className="text-slate-900 font-bold">{user.standard || "12th / Dropper"}</strong></span>
-                </p>
+                  <span>
+                    Class:{" "}
+                    {user.standard ? (
+                      <strong className="text-slate-900 font-bold">{user.standard}</strong>
+                    ) : (
+                      <button
+                        onClick={handleOpenEditProfile}
+                        className="text-brand-700 underline font-bold hover:text-brand-900 cursor-pointer"
+                      >
+                        + Set Class
+                      </button>
+                    )}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -416,6 +462,27 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
+
+          {/* Preferences prompt alert if not set */}
+          {(!user.exam || !user.city) && (
+            <div className="p-3 sm:p-4 rounded-2xl bg-amber-50/90 border border-amber-300 text-amber-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-amber-800" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-amber-950">Set Your Aspirant Preferences</h4>
+                  <p className="text-[11px] sm:text-xs text-amber-900/90">Please specify your Target Exam (JEE/NEET) and Coaching Hub to get personalized admission passes.</p>
+                </div>
+              </div>
+              <button
+                onClick={handleOpenEditProfile}
+                className="btn-primary text-xs py-2 px-3.5 font-bold shrink-0 self-start sm:self-auto cursor-pointer shadow-xs"
+              >
+                Set Preferences Now
+              </button>
+            </div>
+          )}
 
           {/* Quick 4 Clean Metric Tabs */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
@@ -1247,8 +1314,14 @@ export default function Dashboard() {
             >
               <div className="bg-gradient-to-r from-brand-900 to-emerald-950 text-white p-5 shrink-0 flex items-start justify-between">
                 <div>
-                  <h3 className="text-lg font-black text-white">Edit Aspirant Preferences</h3>
-                  <p className="text-xs text-white/80">Customize your target exam, class, and coaching location.</p>
+                  <h3 className="text-lg font-black text-white">
+                    {(!user.exam || !user.city) ? "Welcome! Set Your Study Preferences" : "Edit Aspirant Preferences"}
+                  </h3>
+                  <p className="text-xs text-white/80">
+                    {(!user.exam || !user.city) 
+                      ? "Choose your Target Exam, Hub, and Class to personalize your admissions."
+                      : "Customize your target exam, class, and coaching location."}
+                  </p>
                 </div>
                 <button
                   onClick={() => setIsEditProfileOpen(false)}
@@ -1284,10 +1357,12 @@ export default function Dashboard() {
                       onChange={(e) => setProfileForm({ ...profileForm, exam: e.target.value })}
                       className="w-full text-xs p-2.5 rounded-xl border border-border bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500"
                     >
+                      <option value="">-- Select Target Exam --</option>
                       <option value="JEE Advanced 2026">JEE Advanced 2026</option>
                       <option value="JEE Main 2026">JEE Main 2026</option>
                       <option value="NEET-UG 2026">NEET-UG 2026</option>
                       <option value="Foundation (Class 9-10)">Foundation (Class 9-10)</option>
+                      <option value="CUET / Other">CUET / Other</option>
                     </select>
                   </div>
 
@@ -1298,6 +1373,7 @@ export default function Dashboard() {
                       onChange={(e) => setProfileForm({ ...profileForm, standard: e.target.value })}
                       className="w-full text-xs p-2.5 rounded-xl border border-border bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500"
                     >
+                      <option value="">-- Select Class --</option>
                       <option value="11th Science">11th Science (Fresh Batch)</option>
                       <option value="12th Science">12th Science (Target 2026)</option>
                       <option value="Dropper / Repeater">Dropper / Repeater Batch</option>
@@ -1311,16 +1387,31 @@ export default function Dashboard() {
                     <label className="text-[10px] font-bold uppercase text-textMuted block mb-1">Target Hub / City</label>
                     <input
                       type="text"
+                      list="hub-city-options"
+                      placeholder="e.g. Kota, Rajasthan"
                       value={profileForm.city}
                       onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
                       className="w-full text-xs p-2.5 rounded-xl border border-border bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500"
                     />
+                    <datalist id="hub-city-options">
+                      <option value="Kota, Rajasthan" />
+                      <option value="Delhi NCR" />
+                      <option value="Hyderabad" />
+                      <option value="Bengaluru" />
+                      <option value="Jaipur" />
+                      <option value="Lucknow" />
+                      <option value="Patna" />
+                      <option value="Agra" />
+                      <option value="Pune" />
+                      <option value="Online / Remote" />
+                    </datalist>
                   </div>
 
                   <div>
                     <label className="text-[10px] font-bold uppercase text-textMuted block mb-1">Dream College Aim</label>
                     <input
                       type="text"
+                      placeholder="e.g. IIT Bombay / AIIMS"
                       value={profileForm.dreamCollege}
                       onChange={(e) => setProfileForm({ ...profileForm, dreamCollege: e.target.value })}
                       className="w-full text-xs p-2.5 rounded-xl border border-border bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500"
@@ -1340,7 +1431,7 @@ export default function Dashboard() {
                     type="submit"
                     className="btn-primary text-xs py-2.5 px-5 font-bold shadow-sm"
                   >
-                    Save Changes
+                    {(!user.exam || !user.city) ? "Save & Continue" : "Save Changes"}
                   </button>
                 </div>
               </form>

@@ -62,10 +62,10 @@ router.post("/verify-otp", async (req, res) => {
         name: studentName,
         phone: formattedPhone,
         email: generatedEmail,
-        exam: exam || "JEE Advanced 2026",
-        city: city || "Kota, Rajasthan",
-        standard: standard || "12th Science / Dropper",
-        dreamCollege: dreamCollege || "IIT Bombay (Computer Science)",
+        exam: exam || "",
+        city: city || "",
+        standard: standard || "",
+        dreamCollege: dreamCollege || "",
         authMethod: "phone_otp",
         verified: true,
         shortlistedInstitutes: [],
@@ -161,10 +161,10 @@ router.post("/google", async (req, res) => {
         name: name || "Student Aspirant",
         email: studentEmail,
         phone: uniquePhone,
-        exam: exam || "JEE Advanced 2026",
-        city: city || "Kota, Rajasthan",
-        standard: "12th Science / Dropper",
-        dreamCollege: dreamCollege || "IIT Bombay (Computer Science)",
+        exam: exam || "",
+        city: city || "",
+        standard: standard || "",
+        dreamCollege: dreamCollege || "",
         authMethod: "google",
         picture: picture || "",
         googleId: googleId || "",
@@ -225,11 +225,11 @@ router.put("/profile", protectStudent, async (req, res) => {
 
   try {
     const updateData = {};
-    if (name) updateData.name = name.trim();
-    if (exam) updateData.exam = exam.trim();
-    if (city) updateData.city = city.trim();
-    if (standard) updateData.standard = standard.trim();
-    if (dreamCollege) updateData.dreamCollege = dreamCollege.trim();
+    if (name !== undefined) updateData.name = name.trim();
+    if (exam !== undefined) updateData.exam = exam.trim();
+    if (city !== undefined) updateData.city = city.trim();
+    if (standard !== undefined) updateData.standard = standard.trim();
+    if (dreamCollege !== undefined) updateData.dreamCollege = dreamCollege.trim();
     if (Array.isArray(shortlistedInstitutes)) updateData.shortlistedInstitutes = shortlistedInstitutes;
 
     const updatedUser = await User.findByIdAndUpdate(

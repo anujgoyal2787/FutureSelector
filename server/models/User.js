@@ -28,19 +28,19 @@ const userSchema = new mongoose.Schema(
     },
     exam: {
       type: String,
-      default: "JEE Advanced 2026"
+      default: ""
     },
     city: {
       type: String,
-      default: "Kota, Rajasthan"
+      default: ""
     },
     standard: {
       type: String,
-      default: "12th Science / Dropper"
+      default: ""
     },
     dreamCollege: {
       type: String,
-      default: "IIT Bombay (Computer Science)"
+      default: ""
     },
     role: {
       type: String,

@@ -8,10 +8,10 @@ import logoImg from "../assets/logo.png";
 export default function AuthModal({ onLoginSuccess }) {
   const { authModal, closeAuthModal, login } = useAuth();
   const [formData, setFormData] = useState({
-    name: "Aryan Sharma",
-    phone: "9876543210",
-    exam: "JEE Advanced 2026",
-    city: "Delhi NCR"
+    name: "",
+    phone: "",
+    exam: "",
+    city: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalError, setModalError] = useState("");
@@ -26,11 +26,11 @@ export default function AuthModal({ onLoginSuccess }) {
     setModalError("");
     try {
       const res = await authAPI.verifyOtp({
-        name: formData.name || "Aryan Sharma",
+        name: formData.name || "Student Aspirant",
         phone: formData.phone,
         otp: "2026",
-        exam: formData.exam,
-        city: formData.city
+        exam: formData.exam || "",
+        city: formData.city || ""
       });
       if (res && res.user) {
         login(res.user, res.token);
@@ -53,13 +53,13 @@ export default function AuthModal({ onLoginSuccess }) {
       onSuccess: async (googleProfile) => {
         try {
           const res = await authAPI.googleLogin({
-            name: googleProfile.name || formData.name || "Aryan Sharma",
+            name: googleProfile.name || formData.name || "Student Aspirant",
             email: googleProfile.email,
             picture: googleProfile.picture || "",
             googleId: googleProfile.googleId || "",
             phone: formData.phone === "9876543210" ? "" : formData.phone,
-            exam: formData.exam,
-            city: formData.city
+            exam: formData.exam || "",
+            city: formData.city || ""
           });
           if (res && res.user) {
             login(res.user, res.token);
@@ -207,10 +207,11 @@ export default function AuthModal({ onLoginSuccess }) {
                   onChange={(e) => setFormData({ ...formData, exam: e.target.value })}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 font-medium focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all bg-white"
                 >
+                  <option value="">Select Target Exam...</option>
                   <option value="JEE Advanced 2026">JEE Advanced 2026</option>
-                  <option value="NEET 2026">NEET UG 2026</option>
-                  <option value="JEE Mains 2025">JEE Mains 2025</option>
-                  <option value="Foundation (9th-10th)">Foundation</option>
+                  <option value="NEET-UG 2026">NEET UG 2026</option>
+                  <option value="JEE Mains 2026">JEE Mains 2026</option>
+                  <option value="Foundation (9th-10th)">Foundation (9th-10th)</option>
                 </select>
               </div>
             </div>
