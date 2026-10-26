@@ -57,7 +57,7 @@ export default function AuthModal({ onLoginSuccess }) {
             email: googleProfile.email,
             picture: googleProfile.picture || "",
             googleId: googleProfile.googleId || "",
-            phone: formData.phone || "9876543210",
+            phone: formData.phone === "9876543210" ? "" : formData.phone,
             exam: formData.exam,
             city: formData.city
           });

@@ -114,18 +114,53 @@ router.post("/google", async (req, res) => {
   }
 
   try {
-    let user = await User.findOne({ email: studentEmail });
+    let user = await User.findOne({
+      $or: [
+        { email: studentEmail },
+        ...(googleId ? [{ googleId }] : [])
+      ]
+    });
+
+    const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
+    const requestedPhone = cleanPhone.length === 10 ? `+91 ${cleanPhone}` : null;
+
+    if (!user && requestedPhone) {
+      // Check if user already exists with this phone number
+      const existingUserByPhone = await User.findOne({ phone: requestedPhone });
+      if (existingUserByPhone) {
+        user = existingUserByPhone;
+        user.email = studentEmail;
+        if (picture && !user.picture) user.picture = picture;
+        if (googleId && !user.googleId) user.googleId = googleId;
+        user.lastLogin = new Date();
+        await user.save();
+        console.log(`🔗 [GOOGLE AUTH] Linked existing phone user to Google account: ${user.name} (${user.email})`);
+      }
+    }
 
     if (!user) {
-      const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
-      const formattedPhone = cleanPhone.length === 10 
-        ? `+91 ${cleanPhone}` 
-        : `+91 ${Math.floor(6000000000 + Math.random() * 3999999999)}`;
+      // Ensure unique phone number to prevent E11000 duplicate key errors
+      let uniquePhone = (requestedPhone && requestedPhone !== "+91 9876543210") ? requestedPhone : null;
+      if (uniquePhone) {
+        const isTaken = await User.findOne({ phone: uniquePhone });
+        if (isTaken) uniquePhone = null;
+      }
+
+      if (!uniquePhone) {
+        for (let i = 0; i < 10; i++) {
+          const candidate = `+91 ${Math.floor(6000000000 + Math.random() * 3999999999)}`;
+          const exists = await User.findOne({ phone: candidate });
+          if (!exists) {
+            uniquePhone = candidate;
+            break;
+          }
+        }
+      }
 
       user = await User.create({
         name: name || "Student Aspirant",
         email: studentEmail,
-        phone: formattedPhone,
+        phone: uniquePhone,
         exam: exam || "JEE Advanced 2026",
         city: city || "Kota, Rajasthan",
         standard: "12th Science / Dropper",
@@ -137,7 +172,7 @@ router.post("/google", async (req, res) => {
         shortlistedInstitutes: [1, 2],
         lastLogin: new Date()
       });
-      console.log(`✨ [GOOGLE REGISTRATION] Created new student profile: ${user.name} (${user.email})`);
+      console.log(`✨ [GOOGLE REGISTRATION] Created new student profile: ${user.name} (${user.email}) with phone ${user.phone}`);
     } else {
       user.lastLogin = new Date();
       if (name && (!user.name || user.name === "Student Aspirant")) user.name = name;

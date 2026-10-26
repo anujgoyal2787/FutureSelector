@@ -95,7 +95,7 @@ function Login() {
             email: googleProfile.email,
             picture: googleProfile.picture || "",
             googleId: googleProfile.googleId || "",
-            phone: formData.phone || "9876543210",
+            phone: formData.phone === "9876543210" ? "" : formData.phone,
             exam: formData.exam || "JEE Advanced 2026",
             city: formData.city || "Kota, Rajasthan"
           });
