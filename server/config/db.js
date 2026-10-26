@@ -13,7 +13,9 @@ const connectDB = async () => {
     return cachedPromise;
   }
 
-  const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/futureselector";
+  const uri =
+    process.env.MONGODB_URI ||
+    "mongodb+srv://anujgoyal226_db_user:YTvrkqWeTp44Z7fK@cluster0.dldj6rv.mongodb.net/futureselector?retryWrites=true&w=majority";
   
   cachedPromise = mongoose.connect(uri, {
     serverSelectionTimeoutMS: 5000,
