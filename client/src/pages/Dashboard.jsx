@@ -212,31 +212,18 @@ export default function Dashboard() {
     if (lockedSeats && lockedSeats.length > 0) {
       return lockedSeats;
     }
-    return [
-      {
-        voucherId: "FS-SEAT-7429",
-        instituteId: 2,
-        instituteName: "Aakash Institute (Janakpuri West)",
-        batch: "2026 Regular Classroom Batch (NEET-UG)",
-        discountAmount: "₹15,000 Flat Grant",
-        status: "ACTIVE • PRESENT AT CASH COUNTER",
-        validTill: "Valid till 30 Nov 2026",
-        escrowDays: "15-Day Escrow Refund Protected",
-        code: "FS-AAKASH-15K",
-        lockedAt: "Today",
-        studentName: user?.name || "Aryan Sharma"
-      }
-    ];
-  }, [apiPasses, lockedSeats, user]);
+    return [];
+  }, [apiPasses, lockedSeats]);
 
-  const currentPass = activePasses[selectedSeatIndex] || activePasses[0];
+  const currentPass = activePasses[selectedSeatIndex] || activePasses[0] || null;
 
   // Shortlisted institutes objects
   const shortlistedInstitutes = useMemo(() => {
-    if (!user?.shortlisted || user.shortlisted.length === 0) {
-      return [institutesData[0], institutesData[1]];
+    const list = user?.shortlisted || user?.shortlistedInstitutes || [];
+    if (!list || list.length === 0) {
+      return [];
     }
-    return institutesData.filter(inst => user.shortlisted.includes(inst.id));
+    return institutesData.filter(inst => list.includes(inst.id));
   }, [user]);
 
   // Copy Voucher ID
@@ -503,34 +490,59 @@ export default function Dashboard() {
         {/* ============================================================ */}
         {activeTab === "passes" && (
           <div className="space-y-4">
-            {/* Multi-voucher selector if user has locked multiple */}
-            {activePasses.length > 1 && (
-              <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                <span className="text-xs font-bold text-textMuted shrink-0">Switch Pass:</span>
-                {activePasses.map((pass, idx) => (
-                  <button
-                    key={pass.voucherId}
-                    onClick={() => setSelectedSeatIndex(idx)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                      selectedSeatIndex === idx
-                        ? "bg-emerald-600 text-white shadow-xs"
-                        : "bg-surface border border-border text-slate-700 hover:bg-surfaceWarm"
-                    }`}
+            {activePasses.length === 0 || !currentPass ? (
+              <div className="bg-surface border-2 border-dashed border-border rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-card">
+                <div className="w-16 h-16 rounded-3xl bg-brand-50 border border-brand-200 text-brand-600 flex items-center justify-center mx-auto shadow-sm">
+                  <Sparkles className="w-8 h-8 text-brand-700" />
+                </div>
+                <div className="max-w-md mx-auto space-y-1.5">
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                    No Active Admission Passes Yet
+                  </h3>
+                  <p className="text-sm text-textMuted font-medium">
+                    You haven't claimed an admission pass yet. Search verified JEE & NEET coaching centers across India to lock in your flat ₹15,000 fee grant waiver.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    to="/find-coaching"
+                    className="btn-primary inline-flex items-center gap-2 text-sm font-bold px-6 py-3 shadow-md"
                   >
-                    <span>{pass.instituteName.split(" ")[0]}</span>
-                    <span className="font-mono text-[10px] opacity-80">({pass.voucherId})</span>
-                  </button>
-                ))}
+                    <span>Browse Coaching Centers</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
-            )}
+            ) : (
+              <>
+                {/* Multi-voucher selector if user has locked multiple */}
+                {activePasses.length > 1 && (
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                    <span className="text-xs font-bold text-textMuted shrink-0">Switch Pass:</span>
+                    {activePasses.map((pass, idx) => (
+                      <button
+                        key={pass.voucherId}
+                        onClick={() => setSelectedSeatIndex(idx)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                          selectedSeatIndex === idx
+                            ? "bg-emerald-600 text-white shadow-xs"
+                            : "bg-surface border border-border text-slate-700 hover:bg-surfaceWarm"
+                        }`}
+                      >
+                        <span>{pass.instituteName.split(" ")[0]}</span>
+                        <span className="font-mono text-[10px] opacity-80">({pass.voucherId})</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
 
-            {/* The Official Pass Card */}
-            <motion.div 
-              key={currentPass.voucherId}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-surface border-2 border-emerald-500/40 rounded-3xl p-5 sm:p-7 shadow-card relative overflow-hidden"
-            >
+                {/* The Official Pass Card */}
+                <motion.div 
+                  key={currentPass.voucherId}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-surface border-2 border-emerald-500/40 rounded-3xl p-5 sm:p-7 shadow-card relative overflow-hidden"
+                >
               <BorderBeam size={260} duration={8} borderWidth={2} colorFrom="#10B981" colorTo="#F59E0B" />
 
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
@@ -668,37 +680,64 @@ export default function Dashboard() {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </>
         )}
+      </div>
+    )}
 
         {/* ============================================================ */}
         {/* 3. TAB CONTENT 2: SHORTLISTED COACHINGS */}
         {/* ============================================================ */}
         {activeTab === "shortlist" && (
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-              <span className="text-textMuted font-semibold">
-                You have saved {shortlistedInstitutes.length} coaching centers to compare
-              </span>
-              <div className="flex items-center gap-2">
-                <Link 
-                  to={`/compare?ids=${shortlistedInstitutes.map(i => i.id).join(",")}`}
-                  className="btn-primary text-xs py-2 px-3.5 font-bold flex items-center gap-1.5 shadow-xs"
-                >
-                  <ArrowRightLeft className="w-3.5 h-3.5" />
-                  <span>Open Side-by-Side Comparison Matrix</span>
-                </Link>
-                <Link 
-                  to="/find-coaching"
-                  className="btn-secondary text-xs py-2 px-3 font-bold"
-                >
-                  <Plus className="w-3.5 h-3.5 text-brand-700" />
-                  <span>Add More</span>
-                </Link>
+            {shortlistedInstitutes.length === 0 ? (
+              <div className="bg-surface border-2 border-dashed border-border rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-card">
+                <div className="w-16 h-16 rounded-3xl bg-rose-50 border border-rose-200 text-rose-500 flex items-center justify-center mx-auto shadow-sm">
+                  <Heart className="w-8 h-8 fill-rose-100 text-rose-500" />
+                </div>
+                <div className="max-w-md mx-auto space-y-1.5">
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                    Your Shortlist is Empty
+                  </h3>
+                  <p className="text-sm text-textMuted font-medium">
+                    You haven't saved any coaching centers yet. Explore verified institutes across India and click the heart icon to save and compare them side-by-side.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    to="/find-coaching"
+                    className="btn-primary inline-flex items-center gap-2 text-sm font-bold px-6 py-3 shadow-md"
+                  >
+                    <span>Find Coaching Centers</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <span className="text-textMuted font-semibold">
+                    You have saved {shortlistedInstitutes.length} coaching centers to compare
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Link 
+                      to={`/compare?ids=${shortlistedInstitutes.map(i => i.id).join(",")}`}
+                      className="btn-primary text-xs py-2 px-3.5 font-bold flex items-center gap-1.5 shadow-xs"
+                    >
+                      <ArrowRightLeft className="w-3.5 h-3.5" />
+                      <span>Open Side-by-Side Comparison Matrix</span>
+                    </Link>
+                    <Link 
+                      to="/find-coaching"
+                      className="btn-secondary text-xs py-2 px-3 font-bold"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-brand-700" />
+                      <span>Add More</span>
+                    </Link>
+                  </div>
+                </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
               {shortlistedInstitutes.map((inst) => (
                 <div 
                   key={inst.id}
@@ -763,8 +802,10 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-          </div>
+          </>
         )}
+      </div>
+    )}
 
         {/* ============================================================ */}
         {/* 4. TAB CONTENT 3: 1-ON-1 ACADEMIC ADVISORY */}

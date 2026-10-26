@@ -68,7 +68,7 @@ router.post("/verify-otp", async (req, res) => {
         dreamCollege: dreamCollege || "IIT Bombay (Computer Science)",
         authMethod: "phone_otp",
         verified: true,
-        shortlistedInstitutes: [1, 2],
+        shortlistedInstitutes: [],
         lastLogin: new Date()
       });
       console.log(`✨ [STUDENT REGISTRATION] Created new student profile in MongoDB: ${user.name} (${user.phone})`);
@@ -169,7 +169,7 @@ router.post("/google", async (req, res) => {
         picture: picture || "",
         googleId: googleId || "",
         verified: true,
-        shortlistedInstitutes: [1, 2],
+        shortlistedInstitutes: [],
         lastLogin: new Date()
       });
       console.log(`✨ [GOOGLE REGISTRATION] Created new student profile: ${user.name} (${user.email}) with phone ${user.phone}`);

@@ -49,21 +49,7 @@ export const AuthProvider = ({ children }) => {
     } catch {
       // fallback
     }
-    return [
-      {
-        voucherId: "FS-SEAT-7429",
-        instituteId: 2,
-        instituteName: "Aakash Institute (Janakpuri West)",
-        batch: "2026 Regular Classroom Batch (NEET-UG)",
-        discountAmount: "₹15,000 Flat Grant",
-        status: "ACTIVE • PRESENT AT COUNTER",
-        validTill: "Valid till 30 Nov 2026",
-        escrowDays: "15-Day Escrow Protected",
-        code: "FS-AAKASH-15K",
-        lockedAt: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
-        studentName: "Aryan Sharma"
-      }
-    ];
+    return [];
   });
 
   const [authModal, setAuthModal] = useState({
@@ -91,14 +77,14 @@ export const AuthProvider = ({ children }) => {
   const login = (userData, token = null) => {
     const studentUser = {
       ...userData,
-      name: userData.name || "Aryan Sharma",
-      email: userData.email || "aspirant@futureselector.com",
-      phone: userData.phone || "+91 98765 43210",
+      name: userData.name || "Student Aspirant",
+      email: userData.email || "",
+      phone: userData.phone || "",
       exam: userData.exam || "JEE Advanced 2026",
       city: userData.city || "Kota, Rajasthan",
       standard: userData.standard || "12th Science / Dropper",
       dreamCollege: userData.dreamCollege || "IIT Bombay (Computer Science)",
-      shortlisted: userData.shortlisted || [1, 2],
+      shortlisted: userData.shortlisted || userData.shortlistedInstitutes || [],
       verified: true
     };
 
@@ -165,8 +151,10 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
+    setLockedSeats([]);
     localStorage.removeItem("fs_student");
     localStorage.removeItem("fs_token");
+    localStorage.removeItem("fs_locked_seats");
   };
 
   const toggleShortlist = (instituteId) => {
