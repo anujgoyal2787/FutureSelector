@@ -238,6 +238,13 @@ function Navbar() {
                   transition={{ type: "spring", stiffness: 450, damping: 18 }}
                 >
                   <Link
+                    to="/institute-portal"
+                    className="text-xs font-bold text-slate-500 hover:text-brand-700 px-3 py-1.5 rounded-full hover:bg-surfaceWarm transition-colors inline-block whitespace-nowrap"
+                  >
+                    Partner Portal
+                  </Link>
+
+                  <Link
                     to="/login"
                     className="text-xs font-bold text-textMain hover:text-brand-600 px-3.5 py-1.5 rounded-full hover:bg-surfaceWarm transition-colors inline-block whitespace-nowrap"
                   >
@@ -376,6 +383,13 @@ function Navbar() {
                   </div>
                 ) : (
                   <>
+                    <Link 
+                      to="/institute-portal" 
+                      onClick={() => setMobileMenu(false)} 
+                      className="w-full text-center py-2 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded-xl"
+                    >
+                      Institute Partner Portal
+                    </Link>
                     <Link 
                       to="/login" 
                       onClick={() => setMobileMenu(false)} 

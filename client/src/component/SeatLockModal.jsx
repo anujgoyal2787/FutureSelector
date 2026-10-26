@@ -5,6 +5,9 @@ import {
   Clock, Users, Award, Share2, Copy, Download, CheckCircle2,
   AlertCircle, ChevronRight, Lock
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { voucherAPI } from "../services/api";
+import { generateAdmissionPassPDF } from "../utils/pdfGenerator";
 
 export default function SeatLockModal({ 
   institute, 
@@ -13,13 +16,14 @@ export default function SeatLockModal({
   onClose,
   couponCode = "" 
 }) {
+  const { user, addLockedSeat } = useAuth();
   const [selectedBatch, setSelectedBatch] = useState(
     initialBatch || (batches[0]?.name || "Nurture Foundation Batch")
   );
-  const [studentName, setStudentName] = useState("");
-  const [studentPhone, setStudentPhone] = useState("");
+  const [studentName, setStudentName] = useState(user?.name || "");
+  const [studentPhone, setStudentPhone] = useState(user?.phone?.replace("+91 ", "") || "");
   const [parentName, setParentName] = useState("");
-  const [targetStream, setTargetStream] = useState("2026 JEE Advanced");
+  const [targetStream, setTargetStream] = useState(user?.exam || "2026 JEE Advanced");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [voucherId, setVoucherId] = useState("");
@@ -29,15 +33,46 @@ export default function SeatLockModal({
 
   const codeToUse = couponCode || `FS-${institute.name.split(" ")[0].toUpperCase()}-15K`;
 
-  const handleSubmit = (e) => {
+  const [consentAgreed, setConsentAgreed] = useState(true);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!consentAgreed) {
+      alert("Please confirm data-sharing consent to lock your pass with this center.");
+      return;
+    }
     setIsSubmitting(true);
-    setTimeout(() => {
-      const generatedId = `FS-SEAT-${Math.floor(1000 + Math.random() * 9000)}`;
+    try {
+      const res = await voucherAPI.claimPass({
+        studentName: studentName || user?.name || "Aryan Sharma",
+        studentPhone: studentPhone || user?.phone || "+91 98765 43210",
+        studentEmail: user?.email || "aspirant@futureselector.com",
+        instituteId: institute.numericId || institute.id || 1,
+        instituteName: institute.name,
+        batch: selectedBatch,
+        discountAmount: "₹15,000 Flat Grant"
+      });
+
+      const generatedId = res.voucher?.voucherId || `FS-SEAT-${Math.floor(1000 + Math.random() * 9000)}`;
       setVoucherId(generatedId);
-      setIsSubmitting(false);
+
+      if (addLockedSeat) {
+        addLockedSeat({
+          voucherId: generatedId,
+          instituteId: institute.numericId || institute.id,
+          instituteName: institute.name,
+          batch: selectedBatch,
+          discountAmount: "₹15,000 Flat Grant",
+          code: res.voucher?.code || codeToUse,
+          studentName: studentName || user?.name || "Aryan Sharma"
+        });
+      }
       setIsConfirmed(true);
-    }, 600);
+    } catch (err) {
+      alert(err.message || "Failed to lock pass. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleShareWhatsApp = () => {
@@ -274,10 +309,24 @@ export default function SeatLockModal({
                 </div>
               </div>
 
+              {/* Explicit Student Consent & Data-Sharing Notice */}
+              <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-brand-50/60 border border-brand-200/80 cursor-pointer text-left">
+                <input
+                  type="checkbox"
+                  required
+                  checked={consentAgreed}
+                  onChange={(e) => setConsentAgreed(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-[#124B38] shrink-0"
+                />
+                <span className="text-[11px] text-slate-700 leading-tight">
+                  I explicitly confirm interest in <strong>{institute.name}</strong> and authorize FutureSelector to release my verified contact details and ₹15,000 Seat Lock Pass to the center desk under FutureSelector Data Protection Policy (v1.0).
+                </span>
+              </label>
+
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !consentAgreed}
                 className="w-full btn-primary py-3 text-xs sm:text-sm font-extrabold justify-center cursor-pointer shadow-md active:scale-95 flex items-center gap-2"
               >
                 {isSubmitting ? (
@@ -369,6 +418,32 @@ export default function SeatLockModal({
                 >
                   <Share2 className="w-4 h-4" />
                   <span>Share Voucher to Parents</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    generateAdmissionPassPDF(
+                      {
+                        voucherId,
+                        instituteName: institute.name,
+                        batch: selectedBatch,
+                        discountAmount: "₹15,000 Flat Grant",
+                        code: codeToUse,
+                        validTill: "Valid till 30 Nov 2026"
+                      },
+                      {
+                        name: studentName || user?.name || "Aryan Sharma",
+                        phone: `+91 ${studentPhone || "9876543210"}`,
+                        exam: targetStream || "JEE Advanced 2026",
+                        city: institute.location
+                      }
+                    );
+                  }}
+                  className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  title="Download printable official vector PDF pass"
+                >
+                  <Download className="w-4 h-4 text-emerald-700" />
+                  <span>Download PDF Pass</span>
                 </button>
 
                 <button

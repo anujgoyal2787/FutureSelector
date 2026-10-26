@@ -9,6 +9,7 @@ import {
   GraduationCap, Calendar, Compass as CompassIcon
 } from "lucide-react";
 import { institutesData, localitiesByCity } from "../data/institutes";
+import { instituteAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import SpotlightCard from "../component/reactbits/SpotlightCard";
 import ShinyText from "../component/reactbits/ShinyText";
@@ -41,6 +42,28 @@ export default function FindCoaching() {
   const [sortBy, setSortBy] = useState("recommended");
   const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  // Live Database Institutes
+  const [institutes, setInstitutes] = useState(institutesData);
+
+  useEffect(() => {
+    const loadLiveInstitutes = async () => {
+      try {
+        const live = await instituteAPI.getAll({
+          city: selectedCity,
+          exam: selectedExam,
+          search: searchQuery
+        });
+        if (live && live.length > 0) {
+          const normalized = live.map(i => ({ ...i, id: i.numericId || i.id }));
+          setInstitutes(normalized);
+        }
+      } catch (err) {
+        console.warn("Backend institutes fallback:", err);
+      }
+    };
+    loadLiveInstitutes();
+  }, [selectedCity, selectedExam, searchQuery]);
 
   // Interaction States
   const [selectedModalInst, setSelectedModalInst] = useState(null);
@@ -121,9 +144,9 @@ export default function FindCoaching() {
     setSortBy("recommended");
   };
 
-  // Filter & Sort Calculation
+  // Filter & Sort Calculation (Computed over live database institutes)
   const filteredInstitutes = useMemo(() => {
-    return institutesData
+    return institutes
       .filter((inst) => {
         // Search Query
         if (searchQuery.trim()) {

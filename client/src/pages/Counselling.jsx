@@ -5,9 +5,11 @@ import {
   Sparkles, ShieldCheck, CheckCircle2, ArrowRight, Phone, User, 
   Calendar, MapPin, BookOpen, Clock, Star, MessageSquare, Video, 
   HelpCircle, ChevronDown, ChevronUp, Share2, Award, Zap, 
-  HeartHandshake, Check, AlertCircle, PhoneCall
+  HeartHandshake, Check, AlertCircle, PhoneCall, Lock, Loader2,
+  QrCode, CreditCard, Smartphone, X, Building2
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { counsellingAPI } from "../services/api";
 import BorderBeam from "../component/reactbits/BorderBeam";
 import ShinyText from "../component/reactbits/ShinyText";
 import StarBorder from "../component/reactbits/StarBorder";
@@ -80,8 +82,8 @@ const ADVISORY_TRACKS = [
 // FAQs for Aspirants and Parents
 const FAQS = [
   {
-    q: "Why is FutureSelector 1-on-1 counselling 100% free?",
-    a: "FutureSelector operates on transparent platform discovery and verified admissions. Our counselors are salaried educational researchers, not commission agents. They do not get paid by any coaching center to push one institute over another."
+    q: "Why is there a nominal ₹11 commitment fee for 1-on-1 counselling?",
+    a: "FutureSelector introduced a nominal ₹11 commitment token to eliminate automated bots, fake spam registrations, and casual slot-blocking. This ensures only genuine, committed JEE/NEET aspirants connect directly with our senior IIT & AIIMS mentors."
   },
   {
     q: "Will my contact number be shared with coaching telemarketers?",
@@ -102,8 +104,8 @@ export default function Counselling() {
   
   // Form State
   const [formData, setFormData] = useState({
-    name: user?.name || "",
-    phone: user?.phone || "",
+    name: user?.name || "Aditya Sharma",
+    phone: user?.phone ? user.phone.replace("+91 ", "") : "9876543210",
     exam: user?.exam || "JEE Advanced",
     city: "Kota",
     track: "coaching-reality",
@@ -114,12 +116,46 @@ export default function Counselling() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [confirmedBooking, setConfirmedBooking] = useState(null);
   const [assignedMentor, setAssignedMentor] = useState(MENTORS[0]);
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
-  const handleSubmit = (e) => {
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (typeof window !== "undefined" && window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      const timeout = setTimeout(() => {
+        resolve(false);
+      }, 5000);
+      script.onload = () => {
+        clearTimeout(timeout);
+        resolve(true);
+      };
+      script.onerror = () => {
+        clearTimeout(timeout);
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Assign mentor based on exam
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      setPaymentError("Please enter your student name and contact number to continue.");
+      return;
+    }
+
+    setIsProcessingPayment(true);
+    setPaymentError("");
+
     let mentor = MENTORS[0];
     if (formData.exam.includes("NEET")) {
       mentor = MENTORS[1];
@@ -127,8 +163,76 @@ export default function Counselling() {
       mentor = MENTORS[2];
     }
     setAssignedMentor(mentor);
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    try {
+      // Step 1: Create Order on Backend
+      const orderRes = await counsellingAPI.createPaymentOrder({
+        studentName: formData.name,
+        phone: formData.phone,
+        targetExam: formData.exam,
+        counsellorName: mentor.name,
+        counsellorId: mentor.id,
+        slotTime: formData.preferredTime,
+        date: formData.preferredDate,
+        trackTitle: ADVISORY_TRACKS.find(t => t.id === formData.track)?.title || "Coaching & Batch Cap Reality Check",
+        notes: formData.notes
+      });
+
+      // Step 2: Load Official Razorpay Checkout Script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded || !window.Razorpay) {
+        throw new Error("Unable to load Razorpay Checkout SDK. Please check your internet connection.");
+      }
+
+      const options = {
+        key: orderRes.keyId,
+        amount: orderRes.amount || 1100,
+        currency: orderRes.currency || "INR",
+        name: "FutureSelector",
+        description: "₹11 Commitment Token Fee • 1-on-1 Academic Advisory",
+        order_id: orderRes.orderId,
+        prefill: {
+          name: formData.name,
+          contact: formData.phone
+        },
+        theme: {
+          color: "#124B38"
+        },
+        handler: async function (response) {
+          try {
+            const verifyRes = await counsellingAPI.verifyPayment({
+              bookingId: orderRes.bookingId,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+            setConfirmedBooking(verifyRes.booking);
+            setSubmitted(true);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          } catch (verifyErr) {
+            setPaymentError(verifyErr.message || "Payment verification failed on server");
+          } finally {
+            setIsProcessingPayment(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessingPayment(false);
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (resp) {
+        setPaymentError(resp.error?.description || "Payment failed or was cancelled by user");
+        setIsProcessingPayment(false);
+      });
+      rzp.open();
+      console.log("💳 [RAZORPAY OPENED]: Order ID:", orderRes.orderId);
+    } catch (err) {
+      setPaymentError(err.message || "Failed to initiate counseling order. Please check inputs.");
+      setIsProcessingPayment(false);
+    }
   };
 
   const handleInstantWhatsApp = () => {
@@ -195,15 +299,15 @@ export default function Counselling() {
               </div>
 
               <div className="inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-black uppercase tracking-wider">
-                Consultation Confirmed • Pass #FS-ADV-{Math.floor(1000 + Math.random() * 9000)}
+                Consultation Confirmed • Booking #{confirmedBooking?.bookingId || "CNS-2026"} • ₹11 Paid
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
-                You're Scheduled for a Free Mentorship Call!
+                1-on-1 Mentorship Advisory Confirmed!
               </h2>
 
               <p className="text-xs sm:text-sm text-slate-700 max-w-lg mx-auto">
-                Thank you, <strong>{formData.name || "Aspirant"}</strong>. Your personal consultation request has been confirmed for <strong>{formData.preferredDate}</strong> ({formData.preferredTime}).
+                Thank you, <strong>{formData.name || "Aspirant"}</strong>. Your ₹11 token commitment fee was verified via Razorpay ({confirmedBooking?.razorpayPaymentId || "pay_verified"}). Consultation is confirmed for <strong>{formData.preferredDate}</strong> ({formData.preferredTime}).
               </p>
             </div>
 
@@ -460,13 +564,56 @@ export default function Counselling() {
                   />
                 </div>
 
-                {/* Submit Button */}
+                {/* Payment Breakdown Card */}
+                <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 text-xs space-y-2">
+                  <div className="flex items-center justify-between font-bold text-slate-700">
+                    <span>1-on-1 Senior Advisory Session Value:</span>
+                    <span className="line-through text-slate-400">₹999</span>
+                  </div>
+                  <div className="flex items-center justify-between font-bold text-emerald-800">
+                    <span>FutureSelector Educational Subsidy:</span>
+                    <span>-₹988</span>
+                  </div>
+                  <div className="border-t border-emerald-200/80 pt-2 flex items-center justify-between text-sm font-black text-slate-900">
+                    <span className="flex items-center gap-1.5">
+                      <Lock className="w-4 h-4 text-emerald-700" />
+                      Commitment Token Fee:
+                    </span>
+                    <span className="text-emerald-800 font-mono text-base font-extrabold bg-emerald-100 px-2.5 py-0.5 rounded-lg border border-emerald-300">
+                      ₹11 Only
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 pt-0.5">
+                    100% refundable token fee to filter spam telemarketers and secure dedicated time with senior IIT/AIIMS faculty.
+                  </p>
+                </div>
+
+                {paymentError && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                    <span>{paymentError}</span>
+                  </div>
+                )}
+
+                {/* Submit / Pay Button */}
                 <button
                   type="submit"
-                  className="w-full py-3.5 px-6 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-black text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-[0.99]"
+                  id="counselling-pay-btn"
+                  data-testid="pay-counselling-btn"
+                  disabled={isProcessingPayment}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-black text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-[0.99]"
                 >
-                  <PhoneCall className="w-4 h-4 text-gold-300" />
-                  <span>Schedule Free Expert Advisory Call</span>
+                  {isProcessingPayment ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <span>Opening Secure Razorpay Gateway (₹11)...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4 text-gold-300" />
+                      <span>Pay ₹11 & Book 1-on-1 Advisory Session</span>
+                    </>
+                  )}
                 </button>
 
                 {/* Privacy & Anti-Spam Guarantee */}

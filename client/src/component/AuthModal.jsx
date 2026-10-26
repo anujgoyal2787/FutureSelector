@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { X, Lock, CheckCircle2, Sparkles, ArrowRight } from "lucide-react";
+import { X, Lock, CheckCircle2, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { authAPI } from "../services/api";
 import logoImg from "../assets/logo.png";
 
 export default function AuthModal({ onLoginSuccess }) {
@@ -11,36 +12,62 @@ export default function AuthModal({ onLoginSuccess }) {
     exam: "JEE Advanced 2026",
     city: "Delhi NCR"
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalError, setModalError] = useState("");
 
   if (!authModal.isOpen) return null;
 
   const target = authModal.targetInstitute;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const student = login({
-      name: formData.name || "Aryan Sharma",
-      phone: `+91 ${formData.phone}`,
-      email: `${(formData.name || "aspirant").toLowerCase().replace(/\s+/g, "")}@gmail.com`,
-      exam: formData.exam,
-      city: formData.city
-    });
-    closeAuthModal();
-    if (onLoginSuccess && target) {
-      onLoginSuccess(target);
+    setIsSubmitting(true);
+    setModalError("");
+    try {
+      const res = await authAPI.verifyOtp({
+        name: formData.name || "Aryan Sharma",
+        phone: formData.phone,
+        otp: "2026",
+        exam: formData.exam,
+        city: formData.city
+      });
+      if (res && res.user) {
+        login(res.user, res.token);
+        closeAuthModal();
+        if (onLoginSuccess && target) {
+          onLoginSuccess(target);
+        }
+      }
+    } catch (err) {
+      setModalError(err.message || "Failed to verify student credentials");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    login({
-      name: "Aryan Sharma",
-      email: "aryan.jee2026@gmail.com",
-      exam: "JEE Advanced 2026",
-      city: "Delhi NCR"
-    });
-    closeAuthModal();
-    if (onLoginSuccess && target) {
-      onLoginSuccess(target);
+  const handleGoogleLogin = async () => {
+    setIsSubmitting(true);
+    setModalError("");
+    try {
+      const email = `${(formData.name || "aspirant").toLowerCase().replace(/\s+/g, "")}.jee2026@gmail.com`;
+      const res = await authAPI.googleLogin({
+        name: formData.name || "Aryan Sharma",
+        email,
+        phone: formData.phone || "9876543210",
+        exam: formData.exam,
+        city: formData.city
+      });
+      if (res && res.user) {
+        login(res.user, res.token);
+        closeAuthModal();
+        if (onLoginSuccess && target) {
+          onLoginSuccess(target);
+        }
+      }
+    } catch (err) {
+      setModalError(err.message || "Google Sign-In failed");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -176,13 +203,29 @@ export default function AuthModal({ onLoginSuccess }) {
               </div>
             </div>
 
+            {modalError && (
+              <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+                {modalError}
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full mt-2 bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+              disabled={isSubmitting}
+              className="w-full mt-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-brand-200" />
-              <span>Unlock Full Audited Report</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Verifying Student Account...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-brand-200" />
+                  <span>Unlock Full Audited Report</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              )}
             </button>
           </form>
 
