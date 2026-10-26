@@ -5,6 +5,7 @@ const Razorpay = require("razorpay");
 const Counselling = require("../models/Counselling");
 const { logAuditEvent } = require("../utils/auditLogger");
 const { initialCounselling } = require("../config/seedData");
+const { sendCounsellingBookingNotification } = require("../utils/mailer");
 
 // Default verified Razorpay test mode credentials (ensures production resilience on Vercel)
 const DEFAULT_RAZORPAY_KEY_ID = "rzp_test_TrRRT8J3Vu7Lun";
@@ -42,7 +43,7 @@ router.get("/", async (req, res) => {
 router.post("/create-order", async (req, res) => {
   try {
     const { 
-      studentName, phone, targetExam, counsellorName, 
+      studentName, phone, email, city, callMode, targetExam, counsellorName, 
       counsellorId, slotTime, date, trackTitle, notes 
     } = req.body;
 
@@ -75,6 +76,7 @@ router.post("/create-order", async (req, res) => {
             bookingId,
             studentName,
             phone: cleanPhone,
+            email: email || "",
             purpose: "1-on-1 Senior Academic Advisory"
           }
         });
@@ -92,6 +94,10 @@ router.post("/create-order", async (req, res) => {
       bookingId,
       studentName,
       phone: cleanPhone,
+      email: email ? email.trim().toLowerCase() : "",
+      city: city || "Kota",
+      callMode: callMode || "Direct Phone Call",
+      notes: notes || "",
       targetExam: targetExam || "JEE/NEET 2026",
       counsellorName: counsellorName || "Er. Raghavendra Singhal (IIT Bombay)",
       counsellorId: counsellorId || "raghavendra",
@@ -197,6 +203,11 @@ router.post("/verify-payment", async (req, res) => {
     });
 
     console.log(`💳 [PAYMENT SUCCESS] ₹11 paid for booking ${booking.bookingId} by ${booking.studentName}`);
+
+    // Asynchronously dispatch email notification to Admin and Student pass
+    sendCounsellingBookingNotification(booking)
+      .then(emailRes => console.log(`📧 [EMAIL DISPATCH SUCCESS] Booking ${booking.bookingId}:`, emailRes))
+      .catch(emailErr => console.error(`❌ [EMAIL DISPATCH FAILED] Booking ${booking.bookingId}:`, emailErr.message));
 
     res.json({
       success: true,

@@ -15,6 +15,22 @@ const counsellingSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    email: {
+      type: String,
+      default: ""
+    },
+    city: {
+      type: String,
+      default: "Kota"
+    },
+    callMode: {
+      type: String,
+      default: "Direct Phone Call"
+    },
+    notes: {
+      type: String,
+      default: ""
+    },
     targetExam: {
       type: String,
       default: "JEE Advanced 2026"

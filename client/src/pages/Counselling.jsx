@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Sparkles, ShieldCheck, CheckCircle2, ArrowRight, Phone, User, 
+  Sparkles, ShieldCheck, CheckCircle2, ArrowRight, Phone, User, Mail,
   Calendar, MapPin, BookOpen, Clock, Star, MessageSquare, Video, 
   HelpCircle, ChevronDown, ChevronUp, Share2, Award, Zap, 
   HeartHandshake, Check, AlertCircle, PhoneCall, Lock, Loader2,
@@ -104,8 +104,9 @@ export default function Counselling() {
   
   // Form State
   const [formData, setFormData] = useState({
-    name: user?.name || "Aditya Sharma",
-    phone: user?.phone ? user.phone.replace("+91 ", "") : "9876543210",
+    name: user?.name || "",
+    phone: user?.phone ? user.phone.replace("+91 ", "") : "",
+    email: user?.email || "",
     exam: user?.exam || "JEE Advanced",
     city: "Kota",
     track: "coaching-reality",
@@ -169,6 +170,9 @@ export default function Counselling() {
       const orderRes = await counsellingAPI.createPaymentOrder({
         studentName: formData.name,
         phone: formData.phone,
+        email: formData.email,
+        city: formData.city,
+        callMode: formData.callMode,
         targetExam: formData.exam,
         counsellorName: mentor.name,
         counsellorId: mentor.id,
@@ -192,7 +196,8 @@ export default function Counselling() {
         description: "₹11 Commitment Token Fee • 1-on-1 Academic Advisory",
         prefill: {
           name: formData.name,
-          contact: formData.phone
+          contact: formData.phone,
+          email: formData.email || undefined
         },
         theme: {
           color: "#124B38"
@@ -456,6 +461,24 @@ export default function Counselling() {
                         className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-border bg-background text-xs font-bold text-slate-900 focus:border-brand-600 focus:bg-white outline-none transition-all shadow-2xs"
                       />
                     </div>
+                  </div>
+                </div>
+
+                {/* Email Address for Confirmation Pass & Meet Invite */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                    <span>Email Address (For Google Meet Link & Confirmation)</span>
+                    <span className="text-[10px] text-textMuted font-medium lowercase">optional</span>
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-textMuted absolute left-3.5 top-3" />
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="e.g. student@gmail.com (Receive official appointment pass)"
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-border bg-background text-xs font-bold text-slate-900 focus:border-brand-600 focus:bg-white outline-none transition-all shadow-2xs"
+                    />
                   </div>
                 </div>
 
