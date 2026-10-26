@@ -452,7 +452,7 @@ export default function Dashboard() {
       const exam = user?.exam || "Competitive Exam";
       const phone = advisoryPhone || user?.phone || "";
       const text = `Hello FutureSelector Senior Counselor! I am ${name} (${exam}, Mobile: ${phone}). I need guidance on: ${advisoryTopic}.`;
-      window.open(`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(text)}`, "_blank");
+      window.open(`https://api.whatsapp.com/send?phone=919070901847&text=${encodeURIComponent(text)}`, "_blank");
     }, 600);
   };
 
@@ -1113,7 +1113,7 @@ export default function Dashboard() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-textMuted">
               <span>Need immediate assistance? Talk to Kota advisory desk directly on WhatsApp.</span>
               <a
-                href={`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(
+                href={`https://api.whatsapp.com/send?phone=919070901847&text=${encodeURIComponent(
                   `Hello FutureSelector Mentor! I am ${user.name} (${user.exam}). My voucher ID is ${currentPass.voucherId}. I need advice on choosing between shortlisted coachings.`
                 )}`}
                 target="_blank"

@@ -14,43 +14,43 @@ import BorderBeam from "../component/reactbits/BorderBeam";
 import ShinyText from "../component/reactbits/ShinyText";
 import StarBorder from "../component/reactbits/StarBorder";
 
-// Verified Senior Academic Mentors
+// Verified Senior Academic Advisory Desks (Kota Central Hub)
 const MENTORS = [
   {
-    id: "raghavendra",
-    name: "Er. Raghavendra Singhal",
-    title: "Ex-Allen Senior Physics Faculty",
-    credentials: "IIT Bombay B.Tech (AIR 142)",
-    experience: "11+ Years Kota Mentorship",
-    specialty: "JEE Advanced Strategy & Dropper Guidance",
+    id: "engineering",
+    name: "FutureSelector Engineering Advisory Desk",
+    title: "Senior JEE Strategy & Batch Audits",
+    credentials: "Kota Central • IIT Alumni Mentorship Council",
+    experience: "11+ Years Kota Guidance",
+    specialty: "JEE Advanced Strategy & Dropper Reality Check",
     rating: "4.96",
     sessionsCount: "2,140+",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-    badge: "JEE Head Advisor"
+    badge: "Kota JEE Desk",
+    icon: "🏛️"
   },
   {
-    id: "priya",
-    name: "Dr. Priya Nambiar",
-    title: "Senior Medical Admissions Mentor",
-    credentials: "AIIMS New Delhi (MBBS)",
+    id: "medical",
+    name: "FutureSelector Medical Advisory Desk",
+    title: "Senior NEET Admissions & Seat Audit",
+    credentials: "Kota Central • Medical Admissions Guidance Panel",
     experience: "9+ Years NEET UG Advisory",
-    specialty: "NEET Botany/Zoology & Government Seat Cutoffs",
-    rating: "4.94",
+    specialty: "NEET Scoring Nuances & Government Seat Cutoffs",
+    rating: "4.98",
     sessionsCount: "1,890+",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80",
-    badge: "NEET Medical Head"
+    badge: "Kota NEET Desk",
+    icon: "🩺"
   },
   {
-    id: "aman",
-    name: "Er. Aman Verma",
-    title: "Senior Mathematics Strategist",
-    credentials: "IIT Delhi (B.Tech)",
-    experience: "8+ Years National Guidance",
-    specialty: "Foundation (9th-10th) & Coaching Comparison",
-    rating: "4.91",
+    id: "foundation",
+    name: "FutureSelector Foundation & Career Desk",
+    title: "Class 8th-10th & Coaching Comparison",
+    credentials: "Kota Central • Senior Academic Coordinators",
+    experience: "10+ Years National Guidance",
+    specialty: "Foundation (8th-10th) & Coaching Transparency",
+    rating: "4.92",
     sessionsCount: "1,420+",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-    badge: "Foundation & IITian"
+    badge: "Foundation & Comparison",
+    icon: "📚"
   }
 ];
 
@@ -245,8 +245,10 @@ export default function Counselling() {
   };
 
   const handleInstantWhatsApp = () => {
-    const text = `Hi FutureSelector Mentor! 👋\nI am preparing for *${formData.exam}* and need urgent unbiased guidance regarding coaching centers, batch caps, and scholarships in *${formData.city}*.\nName: ${formData.name || "Aspirant"}`;
-    window.open(`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(text)}`, "_blank");
+    const text = confirmedBooking
+      ? `Namaste FutureSelector Team! 👋\nMaine 1-on-1 Academic Counseling book ki hai:\n\n🎫 *Booking ID:* #${confirmedBooking?.bookingId || "CNS-2026"}\n👤 *Student Name:* ${formData.name || "Aspirant"}\n📱 *Phone:* ${formData.phone}\n🎯 *Target Exam:* ${formData.exam}\n📍 *Target City:* ${formData.city}\n⏰ *Preferred Slot:* ${formData.preferredDate} (${formData.preferredTime})\n\nPlease connect me with the Academic Counselor.`
+      : `Namaste FutureSelector Team! 👋\nI need unbiased guidance for *${formData.exam}* in *${formData.city}*.\nName: ${formData.name || "Aspirant"}\nPhone: ${formData.phone}`;
+    window.open(`https://api.whatsapp.com/send?phone=919070901847&text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (
@@ -320,25 +322,29 @@ export default function Counselling() {
               </p>
             </div>
 
-            {/* Assigned Mentor Card */}
-            <div className="mt-8 bg-surfaceWarm/80 border border-border rounded-2xl p-4 sm:p-5 flex items-center gap-4 relative z-10">
-              <img 
-                src={assignedMentor.avatar} 
-                alt={assignedMentor.name} 
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-brand-500 shadow-sm shrink-0" 
-              />
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md border border-brand-200">
-                    Assigned Senior Mentor
+            {/* Assigned Official Advisory Desk Card */}
+            <div className="mt-8 bg-gradient-to-r from-brand-900 via-brand-800 to-emerald-950 text-white rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 relative z-10 shadow-xl border border-emerald-500/30">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-emerald-400 text-brand-950 flex items-center justify-center font-black text-2xl shadow-md shrink-0">
+                <ShieldCheck className="w-9 h-9 text-brand-950" />
+              </div>
+              <div className="space-y-1.5 text-center sm:text-left flex-1 min-w-0">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-gold-400 text-brand-950 px-2.5 py-0.5 rounded-full shadow-xs">
+                    Official Advisory Desk
                   </span>
-                  <span className="text-xs font-bold text-amber-600 flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                    {assignedMentor.rating}
+                  <span className="text-xs font-bold text-emerald-300 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Senior Coordinator On-Duty
                   </span>
                 </div>
-                <h4 className="text-base font-extrabold text-slate-900">{assignedMentor.name}</h4>
-                <p className="text-xs text-slate-600 font-semibold">{assignedMentor.title} • {assignedMentor.credentials}</p>
+                <h4 className="text-lg font-black text-white">{assignedMentor.name || "FutureSelector Senior Academic Advisory Desk"}</h4>
+                <p className="text-xs text-white/80 leading-relaxed font-medium">
+                  Kota Central Advisory Panel • 100% Non-Commissioned Guidance for <strong>{formData.exam}</strong>
+                </p>
+                <div className="pt-1.5 text-xs text-emerald-200 font-semibold flex items-center justify-center sm:justify-start gap-1.5">
+                  <PhoneCall className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>Senior Counselor will direct call on <strong>+91 {formData.phone}</strong> during <strong>{formData.preferredTime}</strong></span>
+                </div>
               </div>
             </div>
 
@@ -349,27 +355,40 @@ export default function Counselling() {
                 <span className="font-extrabold text-slate-900">{formData.exam}</span>
               </div>
               <div className="p-3 bg-white rounded-xl border border-border">
-                <span className="text-[10px] text-textMuted uppercase font-bold block">Preferred City</span>
+                <span className="text-[10px] text-textMuted uppercase font-bold block">Target City</span>
                 <span className="font-extrabold text-slate-900">{formData.city}</span>
               </div>
               <div className="p-3 bg-white rounded-xl border border-border col-span-2 sm:col-span-1">
-                <span className="text-[10px] text-textMuted uppercase font-bold block">Session Mode</span>
+                <span className="text-[10px] text-textMuted uppercase font-bold block">Consultation Mode</span>
                 <span className="font-extrabold text-brand-700">{formData.callMode}</span>
               </div>
             </div>
 
+            {/* Zero Telemarketing Privacy Guarantee Note */}
+            <div className="mt-4 p-3.5 rounded-2xl bg-emerald-50/90 border border-emerald-200/90 text-xs text-emerald-950 flex flex-col sm:flex-row items-center justify-between gap-2.5 relative z-10">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
+                <span className="text-[11px] font-semibold text-emerald-900 leading-tight">
+                  <strong>100% Privacy & Anti-Spam Guarantee:</strong> Your number is never shared with coaching sales reps. Only our official Kota desk will contact you.
+                </span>
+              </div>
+              <span className="font-mono font-bold text-[11px] text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-lg border border-emerald-300 shrink-0">
+                Official Hotline: +91 90709 01847
+              </span>
+            </div>
+
             {/* Actions */}
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 relative z-10">
+            <div className="mt-6 flex flex-col sm:flex-row gap-3 relative z-10">
               <button
                 onClick={handleInstantWhatsApp}
-                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                className="w-full sm:flex-1 py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20BD5A] text-white font-black text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
               >
-                <MessageSquare className="w-4 h-4" />
-                <span>Connect with Mentor on WhatsApp</span>
+                <MessageSquare className="w-4 h-4 fill-white" />
+                <span>Chat on Official WhatsApp (+91 90709 01847)</span>
               </button>
               <Link 
                 to="/compare" 
-                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-surface hover:bg-surfaceWarm border border-border text-slate-900 font-bold text-xs flex items-center justify-center gap-2 transition-all"
+                className="w-full sm:flex-1 py-3.5 px-4 rounded-xl bg-surface hover:bg-surfaceWarm border border-border text-slate-900 font-bold text-xs flex items-center justify-center gap-2 transition-all"
               >
                 <span>Compare Coachings Now</span>
                 <ArrowRight className="w-4 h-4 text-brand-600" />
@@ -685,19 +704,19 @@ export default function Counselling() {
                     className="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-brand-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
                   >
                     <MessageSquare className="w-4 h-4 fill-brand-950" />
-                    <span>Open Live WhatsApp Desk</span>
+                    <span>Open Live WhatsApp Desk (+91 90709 01847)</span>
                   </button>
                 </div>
               </div>
 
-              {/* Verified Mentor Cards */}
+              {/* Verified Academic Advisory Desks */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                     <Award className="w-4 h-4 text-gold-500" />
-                    <span>Meet Our Senior Academic Panel</span>
+                    <span>Senior Academic Advisory Desks</span>
                   </h4>
-                  <span className="text-[11px] text-textMuted font-semibold">100% Salaried</span>
+                  <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">100% Non-Commissioned</span>
                 </div>
 
                 {MENTORS.map((m) => (
@@ -705,11 +724,9 @@ export default function Counselling() {
                     key={m.id}
                     className="bg-surface rounded-2xl border border-border p-4 shadow-2xs hover:shadow-card transition-all flex items-start gap-3.5"
                   >
-                    <img 
-                      src={m.avatar} 
-                      alt={m.name} 
-                      className="w-13 h-13 rounded-xl object-cover border border-border shrink-0" 
-                    />
+                    <div className="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-200 text-2xl flex items-center justify-center shrink-0 shadow-2xs">
+                      {m.icon}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
                         <h5 className="text-xs font-black text-slate-900 truncate">{m.name}</h5>

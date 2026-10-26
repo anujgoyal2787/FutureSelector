@@ -237,7 +237,7 @@ async function sendCounsellingBookingNotification(booking) {
             </div>
 
             <div class="footer">
-              Need urgent help? Reply directly to this email or WhatsApp our student support desk at <strong>+91 98765 43210</strong>.<br />
+              Need urgent help? Reply directly to this email or WhatsApp our student support desk at <strong>+91 90709 01847</strong>.<br />
               © 2026 FutureSelector • 100% Non-Commissioned Academic Mentorship
             </div>
           </div>
