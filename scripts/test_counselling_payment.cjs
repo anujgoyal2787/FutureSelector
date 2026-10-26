@@ -8,7 +8,7 @@ const fs = require("fs");
 const path = require("path");
 
 const API_BASE = "http://localhost:3000/api";
-let RAZORPAY_KEY_SECRET = "qaRUqxdzJinRV1rtS7n33axI";
+let RAZORPAY_KEY_SECRET = "wRCzftXSEjdH4223F12dm74o";
 try {
   const envContent = fs.readFileSync(path.resolve(__dirname, "../server/.env"), "utf8");
   const match = envContent.match(/RAZORPAY_KEY_SECRET\s*=\s*([^\r\n]+)/);

@@ -189,7 +189,7 @@ export default function Counselling() {
       }
 
       const options = {
-        key: orderRes.keyId || "rzp_test_TrRRT8J3Vu7Lun",
+        key: orderRes.keyId || "rzp_live_TsfmDISCjEzDYj",
         amount: orderRes.amount || 1100,
         currency: orderRes.currency || "INR",
         name: "FutureSelector",

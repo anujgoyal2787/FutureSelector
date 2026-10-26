@@ -7,9 +7,9 @@ const { logAuditEvent } = require("../utils/auditLogger");
 const { initialCounselling } = require("../config/seedData");
 const { sendCounsellingBookingNotification } = require("../utils/mailer");
 
-// Default verified Razorpay test mode credentials (ensures production resilience on Vercel)
-const DEFAULT_RAZORPAY_KEY_ID = "rzp_test_TrRRT8J3Vu7Lun";
-const DEFAULT_RAZORPAY_KEY_SECRET = "qaRUqxdzJinRV1rtS7n33axI";
+// Default verified Razorpay live production credentials (ensures production resilience on Vercel)
+const DEFAULT_RAZORPAY_KEY_ID = "rzp_live_TsfmDISCjEzDYj";
+const DEFAULT_RAZORPAY_KEY_SECRET = "wRCzftXSEjdH4223F12dm74o";
 
 // Helper to get initialized Razorpay Instance
 function getRazorpay() {
