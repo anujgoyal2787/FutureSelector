@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { authAPI } from "../services/api";
+import { triggerGoogleAuth } from "../services/googleAuth";
 import logoImg from "../assets/logo.png";
 import loginMarketingImg from "../assets/login-marketing.jpg";
 
@@ -86,24 +87,36 @@ function Login() {
   // 1. Google 1-Click Sign-In
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
-    try {
-      const email = `${(formData.name || "aspirant").toLowerCase().replace(/\s+/g, "")}.jee2026@gmail.com`;
-      const res = await authAPI.googleLogin({
-        name: formData.name || "Aryan Sharma",
-        email,
-        phone: formData.phone || "9876543210",
-        exam: formData.exam || "JEE Advanced 2026",
-        city: formData.city || "Kota, Rajasthan"
-      });
-      if (res && res.user) {
-        login(res.user, res.token);
-        navigate("/dashboard");
+    triggerGoogleAuth({
+      onSuccess: async (googleProfile) => {
+        try {
+          const res = await authAPI.googleLogin({
+            name: googleProfile.name || formData.name || "Student Aspirant",
+            email: googleProfile.email,
+            picture: googleProfile.picture || "",
+            googleId: googleProfile.googleId || "",
+            phone: formData.phone || "9876543210",
+            exam: formData.exam || "JEE Advanced 2026",
+            city: formData.city || "Kota, Rajasthan"
+          });
+          if (res && res.user) {
+            login(res.user, res.token);
+            navigate("/dashboard");
+          }
+        } catch (err) {
+          alert(err.message || "Google Sign-In failed on server");
+        } finally {
+          setIsGoogleLoading(false);
+        }
+      },
+      onError: (err) => {
+        setIsGoogleLoading(false);
+        console.warn("Google Sign-In notice:", err);
+        if (err.message && !err.message.toLowerCase().includes("cancel")) {
+          alert(err.message || "Google authentication could not be completed.");
+        }
       }
-    } catch (err) {
-      alert(err.message || "Google Sign-In failed");
-    } finally {
-      setIsGoogleLoading(false);
-    }
+    });
   };
 
   // 2. Validate details and trigger OTP

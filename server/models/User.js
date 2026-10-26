@@ -18,6 +18,14 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true
     },
+    picture: {
+      type: String,
+      default: ""
+    },
+    googleId: {
+      type: String,
+      default: ""
+    },
     exam: {
       type: String,
       default: "JEE Advanced 2026"

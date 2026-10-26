@@ -382,8 +382,12 @@ export default function Dashboard() {
             
             {/* Identity info */}
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-700 to-brand-900 text-white font-black text-2xl flex items-center justify-center shadow-md shrink-0">
-                {user.name?.charAt(0) || "A"}
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-700 to-brand-900 text-white font-black text-2xl flex items-center justify-center shadow-md shrink-0 overflow-hidden">
+                {user.picture ? (
+                  <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  user.name?.charAt(0) || "A"
+                )}
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">

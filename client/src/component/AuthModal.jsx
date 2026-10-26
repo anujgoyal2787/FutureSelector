@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Lock, CheckCircle2, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { authAPI } from "../services/api";
+import { triggerGoogleAuth } from "../services/googleAuth";
 import logoImg from "../assets/logo.png";
 
 export default function AuthModal({ onLoginSuccess }) {
@@ -48,27 +49,38 @@ export default function AuthModal({ onLoginSuccess }) {
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
     setModalError("");
-    try {
-      const email = `${(formData.name || "aspirant").toLowerCase().replace(/\s+/g, "")}.jee2026@gmail.com`;
-      const res = await authAPI.googleLogin({
-        name: formData.name || "Aryan Sharma",
-        email,
-        phone: formData.phone || "9876543210",
-        exam: formData.exam,
-        city: formData.city
-      });
-      if (res && res.user) {
-        login(res.user, res.token);
-        closeAuthModal();
-        if (onLoginSuccess && target) {
-          onLoginSuccess(target);
+    triggerGoogleAuth({
+      onSuccess: async (googleProfile) => {
+        try {
+          const res = await authAPI.googleLogin({
+            name: googleProfile.name || formData.name || "Aryan Sharma",
+            email: googleProfile.email,
+            picture: googleProfile.picture || "",
+            googleId: googleProfile.googleId || "",
+            phone: formData.phone || "9876543210",
+            exam: formData.exam,
+            city: formData.city
+          });
+          if (res && res.user) {
+            login(res.user, res.token);
+            closeAuthModal();
+            if (onLoginSuccess && target) {
+              onLoginSuccess(target);
+            }
+          }
+        } catch (err) {
+          setModalError(err.message || "Failed to complete Google Sign-In");
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+      onError: (err) => {
+        setIsSubmitting(false);
+        if (err.message && !err.message.toLowerCase().includes("cancel")) {
+          setModalError(err.message);
         }
       }
-    } catch (err) {
-      setModalError(err.message || "Google Sign-In failed");
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   return (

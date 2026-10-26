@@ -32,10 +32,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize Database & Seed
+// Ensure database connection is established before processing API requests (essential for serverless)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error(`[DB CONNECTION ERROR on ${req.method} ${req.url}]:`, err.message);
+  }
+  next();
+});
+
+// Initial Seeder run in background
 (async () => {
-  await connectDB();
-  await seedDatabase();
+  try {
+    await connectDB();
+    await seedDatabase();
+  } catch (err) {
+    console.warn("Initial DB seed deferred until connection is ready:", err.message);
+  }
 })();
 
 // Health & System Status Endpoint

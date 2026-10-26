@@ -106,7 +106,7 @@ router.post("/verify-otp", async (req, res) => {
  * Persists student to MongoDB 'users' collection
  */
 router.post("/google", async (req, res) => {
-  const { name, email, phone, exam, city, dreamCollege } = req.body;
+  const { name, email, phone, exam, city, dreamCollege, picture, googleId } = req.body;
 
   const studentEmail = (email || "").toLowerCase().trim();
   if (!studentEmail || !studentEmail.includes("@")) {
@@ -131,6 +131,8 @@ router.post("/google", async (req, res) => {
         standard: "12th Science / Dropper",
         dreamCollege: dreamCollege || "IIT Bombay (Computer Science)",
         authMethod: "google",
+        picture: picture || "",
+        googleId: googleId || "",
         verified: true,
         shortlistedInstitutes: [1, 2],
         lastLogin: new Date()
@@ -138,7 +140,9 @@ router.post("/google", async (req, res) => {
       console.log(`✨ [GOOGLE REGISTRATION] Created new student profile: ${user.name} (${user.email})`);
     } else {
       user.lastLogin = new Date();
-      if (name) user.name = name;
+      if (name && (!user.name || user.name === "Student Aspirant")) user.name = name;
+      if (picture && !user.picture) user.picture = picture;
+      if (googleId && !user.googleId) user.googleId = googleId;
       await user.save();
       console.log(`🔑 [GOOGLE LOGIN] Authenticated existing student: ${user.name} (${user.email})`);
     }

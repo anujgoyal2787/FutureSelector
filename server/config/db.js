@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 let isConnected = false;
+let cachedPromise = null;
 
 const connectDB = async () => {
   if (mongoose.connection.readyState === 1) {
@@ -8,21 +9,27 @@ const connectDB = async () => {
     return mongoose.connection;
   }
 
+  if (cachedPromise) {
+    return cachedPromise;
+  }
+
   const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/futureselector";
   
-  try {
-    const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
-      autoIndex: true
-    });
+  cachedPromise = mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 5000,
+    autoIndex: true
+  }).then((conn) => {
     isConnected = true;
     console.log(`🟢 [MONGODB] Connected successfully: ${conn.connection.host}/${conn.connection.name}`);
     return conn;
-  } catch (error) {
-    console.error(`🔴 [MONGODB CONNECTION ERROR]: ${error.message}`);
-    console.log(`ℹ️ [NOTE]: Please check your MONGODB_URI in server/.env or ensure MongoDB is running.`);
+  }).catch((error) => {
+    cachedPromise = null;
     isConnected = false;
-  }
+    console.error(`🔴 [MONGODB CONNECTION ERROR]: ${error.message}`);
+    throw error;
+  });
+
+  return cachedPromise;
 };
 
 // Connection Event Listeners

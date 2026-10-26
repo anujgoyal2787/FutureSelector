@@ -212,8 +212,12 @@ function Navbar() {
                       : "bg-surface border-border text-textMain hover:border-brand-200 hover:bg-brand-50/50"
                   }`}
                 >
-                  <div className="w-5 h-5 rounded-full bg-brand-600 text-white font-extrabold text-[10px] flex items-center justify-center">
-                    {user.name?.charAt(0) || "S"}
+                  <div className="w-5 h-5 rounded-full bg-brand-600 text-white font-extrabold text-[10px] flex items-center justify-center overflow-hidden shrink-0">
+                    {user.picture ? (
+                      <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      user.name?.charAt(0) || "S"
+                    )}
                   </div>
                   <span className="max-w-[90px] truncate">{user.name?.split(" ")[0]}</span>
                   <span className="text-[10px] text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-md font-semibold hidden sm:inline">
