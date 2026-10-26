@@ -10,6 +10,7 @@ import Scholarships from "./pages/Scholarships";
 import Counselling from "./pages/Counselling";
 import Dashboard from "./pages/Dashboard";
 import InstitutePortal from "./pages/InstitutePortal";
+import Policies from "./pages/Policies";
 
 // Admin Layout & 13 Operation Modules
 import AdminLayout from "./layout/AdminLayout";
@@ -56,6 +57,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/institute-portal" element={<InstitutePortal />} />
         <Route path="/partner" element={<InstitutePortal />} />
+        <Route path="/terms" element={<Policies />} />
+        <Route path="/privacy" element={<Policies />} />
+        <Route path="/refund-policy" element={<Policies />} />
+        <Route path="/contact" element={<Policies />} />
 
         {/* Super Admin Operations Suite - 13 Modular Pages */}
         <Route path="/admin" element={<AdminLayout />}>

@@ -1287,20 +1287,21 @@ function Home() {
           </div>
           
           <div>
-            <h4 className="font-semibold text-textMain mb-4">Company</h4>
+            <h4 className="font-semibold text-textMain mb-4">Legal & Policies</h4>
             <ul className="space-y-3 text-sm text-textMuted">
-              <li><a href="#" className="hover:text-brand-600 transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-brand-600 transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-brand-600 transition-colors">Privacy Policy</a></li>
+              <li><Link to="/terms" className="hover:text-brand-600 transition-colors">Terms & Conditions</Link></li>
+              <li><Link to="/privacy" className="hover:text-brand-600 transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/refund-policy" className="hover:text-brand-600 transition-colors">Cancellation & Refund Policy</Link></li>
+              <li><Link to="/contact" className="hover:text-brand-600 transition-colors">Contact Us</Link></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-semibold text-textMain mb-4">Contact</h4>
+            <h4 className="font-semibold text-textMain mb-4">Support & Advisory</h4>
             <ul className="space-y-3 text-sm text-textMuted">
-              <li>support@futureselector.com</li>
-              <li>+91 1800-123-4567</li>
-              <li>Pan-India Student Advisory Support</li>
+              <li><a href="mailto:support@futureselector.in" className="hover:text-brand-600 transition-colors">support@futureselector.in</a></li>
+              <li><a href="tel:+917817035087" className="hover:text-brand-600 transition-colors">+91 78170 35087</a></li>
+              <li>Kota, Rajasthan — Pan-India Advisory</li>
             </ul>
           </div>
         </div>
