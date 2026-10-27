@@ -25,10 +25,22 @@ export default function AuthModal({ onLoginSuccess }) {
     setIsSubmitting(true);
     setModalError("");
     try {
+      const cleanPhone = (formData.phone || "").replace(/\D/g, "").slice(-10);
+      if (!cleanPhone || cleanPhone.length !== 10) {
+        setModalError("Please enter a valid 10-digit mobile number");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Step 1: Request OTP from backend service
+      const otpRes = await authAPI.sendOtp(cleanPhone, formData.name || "Student Aspirant");
+      
+      // Step 2: In demo mode, backend returns generated demoOtp; verify it
+      const otpToVerify = otpRes.demoOtp || "2026";
       const res = await authAPI.verifyOtp({
         name: formData.name || "Student Aspirant",
-        phone: formData.phone,
-        otp: "2026",
+        phone: cleanPhone,
+        otp: otpToVerify,
         exam: formData.exam || "",
         city: formData.city || ""
       });

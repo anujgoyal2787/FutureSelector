@@ -113,27 +113,47 @@ const ensureApprovalRequests = async () => {
 };
 ensureApprovalRequests();
 
-// 1. Admin Authentication (Supports Master Secret Key or Email/Password)
+// Helper to determine if admin secret key is allowed
+const isSecretKeyAllowed = () => {
+  if (process.env.ALLOW_ADMIN_SECRET_KEY === "false") return false;
+  if (process.env.ALLOW_ADMIN_SECRET_KEY === "true") return true;
+  return process.env.NODE_ENV !== "production";
+};
+
+// 1. Admin Authentication (Supports Master Secret Key in Dev or Standard Email/Password)
 router.post("/login", async (req, res) => {
   try {
     const { secretKey, email, password } = req.body;
     let adminUser = null;
 
-    // A. Master Secret Key Login
+    // A. Master Secret Key Login (Dev / Emergency Only)
     if (secretKey) {
-      if (secretKey === ADMIN_SECRET || secretKey === "admin2026") {
-        try {
-          adminUser = await AdminUser.findOne({ role: "SUPER_ADMIN", status: "ACTIVE" });
-        } catch {}
+      if (!isSecretKeyAllowed()) {
+        await logAuditEvent({
+          req,
+          actor: { id: "unknown", name: "Guest", role: "ANONYMOUS" },
+          action: "ADMIN_LOGIN_DENIED",
+          entityType: "AUTH",
+          status: "DENIED",
+          reason: "Secret key login is disabled in production mode"
+        });
+        return res.status(403).json({
+          error: "Master secret key login is disabled in production. Please sign in with your Super Admin email and password."
+        });
+      }
 
+      const devSecret = process.env.ADMIN_SECRET_KEY || (process.env.NODE_ENV !== "production" ? "admin2026" : null);
+      if (secretKey === ADMIN_SECRET || (devSecret && secretKey === devSecret)) {
+        adminUser = await AdminUser.findOne({ role: "SUPER_ADMIN", status: "ACTIVE" });
         if (!adminUser) {
-          adminUser = {
-            _id: "admin_master_root",
+          adminUser = await AdminUser.create({
             name: "Super Administrator",
             email: "admin@futureselector.com",
+            password: "admin2026",
             role: "SUPER_ADMIN",
-            permissions: ["*"]
-          };
+            permissions: ["*"],
+            phone: "+91 99999 88888"
+          });
         }
       } else {
         await logAuditEvent({

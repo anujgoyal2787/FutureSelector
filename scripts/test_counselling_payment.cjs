@@ -92,7 +92,7 @@ async function runTests() {
       body: JSON.stringify({
         bookingId,
         razorpay_order_id: orderId,
-        razorpay_payment_id: "pay_tampered_12345",
+        razorpay_payment_id: "tampered_fake_payment_id",
         razorpay_signature: "invalid_tampered_signature_hex"
       })
     });

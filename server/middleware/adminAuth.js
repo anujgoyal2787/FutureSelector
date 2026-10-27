@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 const AdminUser = require("../models/AdminUser");
 const { logAuditEvent } = require("../utils/auditLogger");
 
@@ -38,10 +39,19 @@ const protectAdmin = async (req, res, next) => {
     // Check database to ensure admin still exists and is ACTIVE
     let admin = null;
     try {
-      admin = await AdminUser.findById(decoded.id).select("-password");
+      if (mongoose.Types.ObjectId.isValid(decoded.id)) {
+        admin = await AdminUser.findById(decoded.id).select("-password");
+      }
     } catch {}
 
-    if (admin && admin.status !== "ACTIVE") {
+    if (!admin) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "Administrative account no longer exists in database."
+      });
+    }
+
+    if (admin.status !== "ACTIVE") {
       await logAuditEvent({
         req,
         actor: { id: decoded.id, name: decoded.name, role: decoded.role },
@@ -56,14 +66,7 @@ const protectAdmin = async (req, res, next) => {
       });
     }
 
-    req.admin = admin || {
-      id: decoded.id,
-      name: decoded.name || "Super Administrator",
-      email: decoded.email || "admin@futureselector.com",
-      role: decoded.role || "SUPER_ADMIN",
-      permissions: decoded.permissions || ["*"]
-    };
-
+    req.admin = admin;
     next();
   } catch (err) {
     return res.status(401).json({

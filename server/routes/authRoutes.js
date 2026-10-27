@@ -3,50 +3,50 @@ const router = express.Router();
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const { protectStudent } = require("../middleware/studentAuth");
+const otpService = require("../utils/otpService");
 
 const JWT_SECRET = process.env.JWT_SECRET || "fs_jwt_secret_2026";
 
 /**
  * 1. Send OTP (Mobile Login)
+ * Secure generation, rate limiting (30s cooldown, 5/15min limit), zero-cost demo separation
  */
 router.post("/send-otp", async (req, res) => {
   const { phone, name } = req.body;
-  if (!phone) {
-    return res.status(400).json({ error: "Mobile number is required" });
+  const result = otpService.generateOtp(phone, name);
+
+  if (!result.success) {
+    return res.status(result.status || 400).json({
+      error: result.error,
+      retryAfter: result.retryAfter
+    });
   }
 
-  const cleanPhone = phone.replace(/\D/g, "").slice(-10);
-  if (cleanPhone.length !== 10) {
-    return res.status(400).json({ error: "Please enter a valid 10-digit mobile number" });
-  }
-
-  const demoOtp = "2026";
-  console.log(`📱 [AUTH SERVICE] OTP issued for +91 ${cleanPhone} (${name || "Student"}): ${demoOtp}`);
-
-  res.json({
+  res.status(result.status || 200).json({
     success: true,
-    message: `OTP sent successfully to +91 ${cleanPhone}`,
-    phone: cleanPhone,
-    demoOtp: process.env.NODE_ENV === "production" ? undefined : demoOtp
+    message: result.message,
+    phone: result.phone,
+    demoOtp: result.demoOtp,
+    expiresInSeconds: result.expiresInSeconds
   });
 });
 
 /**
  * 2. Verify OTP & Log In / Register Student
- * Persists student to MongoDB 'users' collection with Mongoose
+ * Persists student to MongoDB 'users' collection with Mongoose.
+ * Enforces single-use consumption, max 3 attempts, expiry, and production rejection of fixed demo OTP.
  */
 router.post("/verify-otp", async (req, res) => {
   const { phone, otp, name, exam, city, standard, dreamCollege } = req.body;
 
-  const cleanPhone = (phone || "").replace(/\D/g, "").slice(-10);
-  if (!cleanPhone || cleanPhone.length !== 10) {
-    return res.status(400).json({ error: "Valid 10-digit phone number is required" });
+  const verification = otpService.verifyOtp(phone, otp);
+  if (!verification.success) {
+    return res.status(verification.status || 400).json({
+      error: verification.error
+    });
   }
 
-  // Developer / free demo code is 2026, or valid 4-digit code in test environments
-  if (!otp || (otp !== "2026" && process.env.NODE_ENV === "production")) {
-    return res.status(400).json({ error: "Invalid OTP. Please enter the valid verification code." });
-  }
+  const cleanPhone = verification.phone;
 
   try {
     const formattedPhone = `+91 ${cleanPhone}`;
@@ -106,7 +106,7 @@ router.post("/verify-otp", async (req, res) => {
  * Persists student to MongoDB 'users' collection
  */
 router.post("/google", async (req, res) => {
-  const { name, email, phone, exam, city, dreamCollege, picture, googleId } = req.body;
+  const { name, email, phone, exam, city, standard, dreamCollege, picture, googleId } = req.body;
 
   const studentEmail = (email || "").toLowerCase().trim();
   if (!studentEmail || !studentEmail.includes("@")) {

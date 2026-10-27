@@ -171,9 +171,15 @@ async function runStudentAuthTests() {
   let student2Token = null;
 
   try {
+    const sendRes2 = await post("/auth/send-otp", {
+      phone: student2Phone,
+      name: "Riya Sen"
+    });
+    const otp2 = sendRes2.data?.demoOtp || "2026";
+
     const verifyRes2 = await post("/auth/verify-otp", {
       phone: student2Phone,
-      otp: "2026",
+      otp: otp2,
       name: "Riya Sen",
       exam: "JEE Advanced 2026",
       city: "Kolkata, WB"
@@ -230,9 +236,15 @@ async function runStudentAuthTests() {
   // 7. Verify Existing Student Re-login
   console.log("\n📋 7. Testing Existing Student Re-login (No Duplicate Creation)...");
   try {
+    const reSendRes = await post("/auth/send-otp", {
+      phone: student1Phone,
+      name: "Kabir Mehta"
+    });
+    const reOtp = reSendRes.data?.demoOtp || "2026";
+
     const reloginRes = await post("/auth/verify-otp", {
       phone: student1Phone,
-      otp: "2026"
+      otp: reOtp
     });
     assert.strictEqual(reloginRes.status, 200);
     assert.strictEqual(reloginRes.data.user._id, student1Id);

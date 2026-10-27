@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -9,6 +9,7 @@ import {
   Percent, TrendingUp, HelpCircle, FileDown, Loader2
 } from "lucide-react";
 import { institutesData } from "../data/institutes";
+import { instituteAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "../component/AuthModal";
 import SeatLockModal from "../component/SeatLockModal";
@@ -71,6 +72,59 @@ export default function Compare() {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfSuccess, setPdfSuccess] = useState(false);
 
+  // Live Database Institutes State (initialized with fallback fixtures to avoid layout flicker)
+  const [allInstitutes, setAllInstitutes] = useState(institutesData);
+  const [isLiveConnected, setIsLiveConnected] = useState(false);
+  const [isLoadingLive, setIsLoadingLive] = useState(true);
+
+  // Fetch live published coaching institutes from MongoDB Atlas
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveInstitutes = async () => {
+      try {
+        setIsLoadingLive(true);
+        const live = await instituteAPI.getAll();
+        if (live && live.length > 0 && isMounted) {
+          const normalized = live.map(inst => ({
+            ...inst,
+            id: inst.numericId || inst.id,
+            numericId: inst.numericId || inst.id,
+            numericFee: inst.numericFee || parseInt(inst.fees?.replace(/[^\d]/g, "") || "120000"),
+            batchSize: inst.batchSize || "45 students",
+            selectionRate: inst.selectionRate || "12%",
+            topRank: inst.topRank || "AIR Top 50",
+            rating: inst.rating || 4.5,
+            reviews: inst.reviews || 0,
+            doubtSupport: inst.doubtSupport || "Dedicated Doubt Counters",
+            hostelDistance: inst.hostelDistance || "Within 300m",
+            facultyHighlights: inst.facultyHighlights || "Senior Kota Faculties",
+            image: inst.image || "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=800&auto=format&fit=crop",
+            location: inst.location || (inst.cityKey ? `${inst.cityKey.toUpperCase()}, India` : "Kota, Rajasthan")
+          }));
+
+          // Merge with fallback data so all historical presets remain valid
+          const merged = [...normalized];
+          institutesData.forEach(fallback => {
+            if (!merged.some(m => (m.numericId || m.id) === fallback.id)) {
+              merged.push(fallback);
+            }
+          });
+
+          setAllInstitutes(merged);
+          setIsLiveConnected(true);
+        }
+      } catch (err) {
+        console.warn("[COMPARE] Live database fetch error, using fallback:", err.message);
+        setIsLiveConnected(false);
+      } finally {
+        if (isMounted) setIsLoadingLive(false);
+      }
+    };
+
+    fetchLiveInstitutes();
+    return () => { isMounted = false; };
+  }, []);
+
   // Parse IDs from URL query e.g. ?ids=1,2
   const initialIds = useMemo(() => {
     const raw = searchParams.get("ids");
@@ -81,6 +135,17 @@ export default function Compare() {
 
   const [selectedIds, setSelectedIds] = useState(initialIds);
 
+  // Sync state with URL search params if changed externally
+  useEffect(() => {
+    const raw = searchParams.get("ids");
+    if (raw) {
+      const parsed = raw.split(",").map(Number).filter(Boolean);
+      if (parsed.length >= 2) {
+        setSelectedIds(parsed.slice(0, 3));
+      }
+    }
+  }, [searchParams]);
+
   // Sync state with URL params
   const updateIds = (nextIds) => {
     setSelectedIds(nextIds);
@@ -88,8 +153,13 @@ export default function Compare() {
   };
 
   const selectedInstitutes = useMemo(() => {
-    return selectedIds.map(id => institutesData.find(i => i.id === id)).filter(Boolean);
-  }, [selectedIds]);
+    const matched = selectedIds
+      .map(id => allInstitutes.find(i => (i.numericId || i.id) === id))
+      .filter(Boolean);
+    if (matched.length >= 2) return matched;
+    if (allInstitutes.length >= 2) return allInstitutes.slice(0, 2);
+    return matched;
+  }, [selectedIds, allInstitutes]);
 
   const handleSelectChange = (slotIndex, newId) => {
     const next = [...selectedIds];
@@ -99,9 +169,9 @@ export default function Compare() {
 
   const addSlot = () => {
     if (selectedIds.length >= 3) return;
-    const available = institutesData.find(i => !selectedIds.includes(i.id));
+    const available = allInstitutes.find(i => !selectedIds.includes(i.numericId || i.id));
     if (available) {
-      updateIds([...selectedIds, available.id]);
+      updateIds([...selectedIds, available.numericId || available.id]);
     }
   };
 
@@ -232,9 +302,17 @@ export default function Compare() {
         <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-slate-200/90 shadow-md">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border-2 border-emerald-200 text-emerald-900 text-xs font-black shadow-2xs">
-                <ArrowRightLeft className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Head-to-Head Coaching Duel Matrix</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border-2 border-emerald-200 text-emerald-900 text-xs font-black shadow-2xs">
+                  <ArrowRightLeft className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Head-to-Head Coaching Duel Matrix</span>
+                </div>
+                {isLiveConnected && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/90 border border-emerald-300 text-emerald-800 text-[11px] font-black">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                    <span>Live MongoDB Atlas ({allInstitutes.length} Centers)</span>
+                  </span>
+                )}
               </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
@@ -495,15 +573,18 @@ export default function Compare() {
                               Switch Center:
                             </label>
                             <select
-                              value={inst.id}
+                              value={inst.numericId || inst.id}
                               onChange={(e) => handleSelectChange(idx, e.target.value)}
                               className="w-full bg-slate-50 hover:bg-white border-2 border-slate-300 hover:border-emerald-500 focus:border-emerald-600 rounded-xl px-3 py-2 text-xs font-black text-slate-900 shadow-2xs outline-none cursor-pointer transition-all"
                             >
-                              {institutesData.map((item) => (
-                                <option key={item.id} value={item.id}>
-                                  {item.name} ({item.location.split(",")[0]})
-                                </option>
-                              ))}
+                              {allInstitutes.map((item) => {
+                                const itemId = item.numericId || item.id;
+                                return (
+                                  <option key={itemId} value={itemId}>
+                                    {item.name} ({item.location ? item.location.split(",")[0] : item.cityKey ? item.cityKey.toUpperCase() : "Center"})
+                                  </option>
+                                );
+                              })}
                             </select>
                           </div>
 
@@ -1037,7 +1118,7 @@ export default function Compare() {
                         </button>
 
                         <Link
-                          to={`/institute/${inst.id}`}
+                          to={`/institute/${inst.numericId || inst.id}`}
                           className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border-2 border-slate-300 font-extrabold text-xs flex items-center justify-center gap-1.5 text-center shadow-2xs transition-all"
                         >
                           <span>View Institute Profile</span>

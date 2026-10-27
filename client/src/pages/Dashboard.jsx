@@ -419,10 +419,12 @@ export default function Dashboard() {
   // Handle instant demo login if logged out - Persists to MongoDB
   const handleDemoLogin = async () => {
     try {
+      const otpRes = await authAPI.sendOtp("9876543210", "Demo Aspirant");
+      const otpToVerify = otpRes.demoOtp || "2026";
       const res = await authAPI.verifyOtp({
         name: "Demo Aspirant",
         phone: "9876543210",
-        otp: "2026",
+        otp: otpToVerify,
         exam: "JEE Advanced 2026",
         city: "Kota, Rajasthan"
       });

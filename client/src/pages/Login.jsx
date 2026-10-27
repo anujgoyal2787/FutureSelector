@@ -148,7 +148,7 @@ function Login() {
       setOtpDigits(["", "", "", ""]);
       setSmsNotice({
         phone: cleanPhone,
-        code: res.demoOtp || "2026"
+        code: res.demoOtp || ""
       });
       setTimeout(() => {
         otpInputRefs[0].current?.focus();
@@ -200,23 +200,30 @@ function Login() {
     }
   };
 
-  // Auto-fill demo OTP (for instant zero-friction testing)
+  // Auto-fill demo OTP (for instant zero-friction developer testing)
   const handleAutoFillOtp = () => {
-    setOtpDigits(["2", "0", "2", "6"]);
+    const codeToFill = smsNotice?.code || "2026";
+    setOtpDigits(codeToFill.split("").slice(0, 4));
     setErrors((prev) => ({ ...prev, otp: "" }));
     otpInputRefs[3].current?.focus();
   };
 
-  // Resend OTP
-  const handleResendOtp = () => {
+  // Resend OTP via real API
+  const handleResendOtp = async () => {
     if (resendTimer > 0) return;
-    setResendTimer(30);
-    setOtpDigits(["", "", "", ""]);
-    setSmsNotice({
-      phone: formData.phone,
-      code: "2026"
-    });
-    otpInputRefs[0].current?.focus();
+    const cleanPhone = formData.phone.replace(/\D/g, "");
+    try {
+      const res = await authAPI.sendOtp(cleanPhone, formData.name);
+      setResendTimer(30);
+      setOtpDigits(["", "", "", ""]);
+      setSmsNotice({
+        phone: cleanPhone,
+        code: res.demoOtp || ""
+      });
+      otpInputRefs[0].current?.focus();
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, otp: err.message || "Failed to resend OTP" }));
+    }
   };
 
   // 3. Verify OTP & Log In
@@ -513,25 +520,27 @@ function Login() {
                   </p>
                 </div>
 
-                {/* Free Quota Notice with 1-Click Auto Fill */}
-                <div className="p-3 bg-emerald-50/80 border border-emerald-200/90 rounded-2xl flex items-center justify-between gap-3 shadow-2xs">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                      OTP
+                {/* Free Demo Quota Notice with 1-Click Auto Fill (when demo OTP is returned by server) */}
+                {smsNotice?.code && (
+                  <div className="p-3 bg-emerald-50/80 border border-emerald-200/90 rounded-2xl flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                        OTP
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-extrabold text-emerald-950">Development / Demo Code</p>
+                        <p className="text-[10px] text-emerald-700">Generated code <strong className="font-mono text-xs bg-emerald-100/90 px-1.5 py-0.5 rounded text-emerald-900">{smsNotice.code}</strong> (valid for 5 mins)</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[11px] font-extrabold text-emerald-950">Free Quota Verification Code</p>
-                      <p className="text-[10px] text-emerald-700">Enter code <strong className="font-mono text-xs bg-emerald-100/90 px-1.5 py-0.5 rounded text-emerald-900">2026</strong> or auto-fill below</p>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAutoFillOtp}
+                      className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer shrink-0"
+                    >
+                      Auto Fill
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleAutoFillOtp}
-                    className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer shrink-0"
-                  >
-                    Auto Fill
-                  </button>
-                </div>
+                )}
 
                 {/* 4-Box OTP Input Form */}
                 <form onSubmit={handleVerifyOtp} className="space-y-4 pt-1">

@@ -50,6 +50,9 @@ export default function AdminLayout() {
   const { isAuthenticated, adminUser, loginAdmin, logoutAdmin, isLoading } = useAdminAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("credentials"); // "credentials" | "secretKey"
+  const [adminEmail, setAdminEmail] = useState("admin@futureselector.com");
+  const [adminPassword, setAdminPassword] = useState("admin2026");
   const [adminKey, setAdminKey] = useState("admin2026");
   const [loginError, setLoginError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,10 +66,15 @@ export default function AdminLayout() {
       e.preventDefault();
       setIsSubmitting(true);
       setLoginError("");
-      const res = await loginAdmin({ secretKey: adminKey });
+
+      const payload = authMode === "credentials" 
+        ? { email: adminEmail, password: adminPassword }
+        : { secretKey: adminKey };
+
+      const res = await loginAdmin(payload);
       setIsSubmitting(false);
       if (!res.success) {
-        setLoginError(res.error || "Invalid Secret Key. Use 'admin2026'");
+        setLoginError(res.error || "Authentication failed. Please verify administrative credentials.");
       }
     };
 
@@ -85,32 +93,96 @@ export default function AdminLayout() {
               Super Admin Authentication
             </h2>
             <p className="text-xs text-[#5F6B64] leading-relaxed">
-              Enter your master secret key or administrative credentials to unlock the operational command center.
+              Sign in with your verified administrator credentials to unlock the operational command center.
             </p>
           </div>
 
+          {/* Mode Switcher */}
+          <div className="grid grid-cols-2 p-1 bg-[#FAF8F5] rounded-xl border border-[#E8E4DA] text-xs font-bold text-slate-700">
+            <button
+              type="button"
+              onClick={() => { setAuthMode("credentials"); setLoginError(""); }}
+              className={`py-1.5 rounded-lg transition-all text-center cursor-pointer ${
+                authMode === "credentials"
+                  ? "bg-white text-[#124B38] shadow-2xs font-extrabold"
+                  : "text-[#5F6B64] hover:text-slate-900"
+              }`}
+            >
+              Email & Password
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMode("secretKey"); setLoginError(""); }}
+              className={`py-1.5 rounded-lg transition-all text-center cursor-pointer ${
+                authMode === "secretKey"
+                  ? "bg-white text-[#124B38] shadow-2xs font-extrabold"
+                  : "text-[#5F6B64] hover:text-slate-900"
+              }`}
+            >
+              Developer Secret Key
+            </button>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Admin Master Secret Key
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  required
-                  value={adminKey}
-                  onChange={(e) => setAdminKey(e.target.value)}
-                  placeholder="Enter key (default: admin2026)"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4DA] text-xs font-mono font-medium text-slate-900 bg-white outline-none focus:border-[#124B38] focus:ring-4 focus:ring-[#124B38]/15 transition-all"
-                />
-                <Lock className="w-4 h-4 text-[#5F6B64] absolute right-3 top-3" />
-              </div>
-              {loginError && (
-                <p className="text-[10px] text-red-600 font-medium mt-1.5 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {loginError}
+            {authMode === "credentials" ? (
+              <>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Super Admin Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    placeholder="admin@futureselector.com"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4DA] text-xs font-medium text-slate-900 bg-white outline-none focus:border-[#124B38] focus:ring-4 focus:ring-[#124B38]/15 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Master Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      required
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      placeholder="Enter administrator password"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4DA] text-xs font-mono font-medium text-slate-900 bg-white outline-none focus:border-[#124B38] focus:ring-4 focus:ring-[#124B38]/15 transition-all"
+                    />
+                    <Lock className="w-4 h-4 text-[#5F6B64] absolute right-3 top-3" />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Developer Secret Key (Non-Prod Only)
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    required
+                    value={adminKey}
+                    onChange={(e) => setAdminKey(e.target.value)}
+                    placeholder="Enter key (e.g. admin2026 in dev)"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4DA] text-xs font-mono font-medium text-slate-900 bg-white outline-none focus:border-[#124B38] focus:ring-4 focus:ring-[#124B38]/15 transition-all"
+                  />
+                  <Lock className="w-4 h-4 text-[#5F6B64] absolute right-3 top-3" />
+                </div>
+                <p className="text-[10px] text-[#5F6B64] mt-1">
+                  🔒 Secret key bypass is strictly disabled in production environments.
                 </p>
-              )}
-            </div>
+              </div>
+            )}
+
+            {loginError && (
+              <p className="text-[10px] text-red-600 font-medium mt-1.5 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 shrink-0" /> {loginError}
+              </p>
+            )}
 
             <button
               type="submit"
@@ -120,12 +192,6 @@ export default function AdminLayout() {
               <span>{isSubmitting ? "Authenticating..." : "Unlock Super Admin Shell"}</span>
               <ArrowRight className="w-3.5 h-3.5 text-gold-300" />
             </button>
-
-            <div className="p-2.5 bg-[#FAF8F5] border border-[#E8E4DA] rounded-xl text-center">
-              <span className="text-[10px] font-bold text-[#124B38]">
-                ⚡ Development Secret: <code className="font-mono">admin2026</code>
-              </span>
-            </div>
           </form>
 
           <div className="pt-2 text-center">
