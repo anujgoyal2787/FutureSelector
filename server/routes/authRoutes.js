@@ -13,7 +13,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "fs_jwt_secret_2026";
  */
 router.post("/send-otp", async (req, res) => {
   const { phone, name } = req.body;
-  const result = otpService.generateOtp(phone, name);
+  const result = await otpService.generateOtp(phone, name);
 
   if (!result.success) {
     return res.status(result.status || 400).json({
@@ -39,7 +39,7 @@ router.post("/send-otp", async (req, res) => {
 router.post("/verify-otp", async (req, res) => {
   const { phone, otp, name, exam, city, standard, dreamCollege } = req.body;
 
-  const verification = otpService.verifyOtp(phone, otp);
+  const verification = await otpService.verifyOtp(phone, otp);
   if (!verification.success) {
     return res.status(verification.status || 400).json({
       error: verification.error

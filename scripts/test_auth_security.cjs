@@ -215,7 +215,7 @@ async function runAuthSecurityTests() {
   });
 
   try {
-    const expRes = otpService.verifyOtp(expiredPhone, "5555");
+    const expRes = await otpService.verifyOtp(expiredPhone, "5555");
     const ok = expRes.success === false && expRes.error.includes("expired");
     report("Expired OTP past 5-minute TTL is rejected with 400", ok, `Status: ${expRes.status}, msg: ${expRes.error}`);
   } catch (err) {
@@ -233,17 +233,18 @@ async function runAuthSecurityTests() {
   delete process.env.ALLOW_DEMO_OTP;
 
   try {
-    const prodVerify = otpService.verifyOtp("9888888888", "2026");
+    const prodVerify = await otpService.verifyOtp("9888888888", "2026");
     const ok = prodVerify.success === false && prodVerify.error.includes("Demo OTP is strictly prohibited in production mode");
     report("Fixed demo OTP '2026' is strictly rejected in production", ok, `Error: ${prodVerify.error}`);
   } catch (err) {
     report("Fixed demo OTP '2026' is strictly rejected in production", false, err.message);
   }
 
-  // Test 9: Unit test generateOtp refusing delivery when no paid SMS gateway configured
+  // Test 9: Unit test generateOtp refusing delivery when no paid SMS gateway configured in strict prod
   delete process.env.SMS_GATEWAY_API_KEY;
+  process.env.ALLOW_DEMO_OTP = "false";
   try {
-    const prodGen = otpService.generateOtp("9888888888", "Prod Student");
+    const prodGen = await otpService.generateOtp("9888888888", "Prod Student");
     const ok = prodGen.success === false && prodGen.status === 503 && prodGen.error.includes("SMS delivery gateway is not configured for production");
     report("Production sendOtp returns 503 without fake SMS delivery when paid provider is unconfigured", ok, `Status: ${prodGen.status}, msg: ${prodGen.error}`);
   } catch (err) {
@@ -252,6 +253,7 @@ async function runAuthSecurityTests() {
 
   // Restore env
   process.env.NODE_ENV = originalEnv || "development";
+  delete process.env.ALLOW_DEMO_OTP;
 
   // -------------------------------------------------------------------------
   // SECTION 4: Super Admin Security & Bypass Hardening
